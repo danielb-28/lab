@@ -21,6 +21,18 @@ int x_max = 0; // Valor maximo de amostras
 auto t1 = std::chrono::steady_clock::now();
 auto t2 = std::chrono::steady_clock::now();
 
+// Utilizar na mbed
+/*
+uint num_amostras()
+{
+    uint valor = (comando>>2) & 0x07;
+
+    if (valor==0x00 || valor==0x01) return 50 * (1 + valor);
+    if (valor==0x02 || valor==0x03) return 250 * (1 + (valor - 2));
+    else return 1000 * (valor - 3);
+}
+*/
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -167,23 +179,20 @@ void MainWindow::serial_start(){
 
     // TESTE
 
-    boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2000)); // TESTE
+    boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max)); // TESTE
 
     uint16_t dado_conv;
 
-    uint16_t aux1 = 0;
-    uint16_t aux2 = 0;
-
-    this->x_data.clear();
-    this->y_data.clear();
+    this->x_data.clear(); // MOD
+    this->y_data.clear(); // MOD
     //qInfo() << dados_str_teste.length(); // DEBUG
 
     //qInfo() << dados.length(); // DEBUG
 
-    for(int index=0; index<2000; index+=2)
+    for(int index=0; index<2*x_max; index+=2)
     {
         //dado_conv = 0x0000;
-        qInfo() << ((uint16_t) dados[index] << 8) ; // DEBUG
+        //qInfo() << ((uint16_t) dados[index] << 8) ; // DEBUG
         //dado_conv = (dados[i] << 8);
         //qInfo() << (uint8_t) dados[i+1]; // DEBUG
         //qInfo() << dado_conv; // DEBUG
@@ -200,7 +209,7 @@ void MainWindow::serial_start(){
         //dado_conv = (uint8_t) dados[i+1];
 
         //memcpy(&dado_conv, &dados[index], 2);
-        dado_conv = (uint16_t)((dados[index] << 8) + (dados[index+1] & 0x00ff));
+        dado_conv = (uint16_t)((dados[index] << 8) + (dados[index+1] & 0x00FF));
 
         //qInfo() << dado_conv; // DEBUG
 
