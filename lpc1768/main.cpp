@@ -1,6 +1,3 @@
-
-// ADC BURST COM MODDMA - TRIGGER EXTERNO E SERIAL
-
 #include "mbed.h"
 #include <LPC17xx.h>
 #include "MODDMA.h"
@@ -45,11 +42,13 @@ bool no_trigger = false;
 
 // VARIAVEIS SERIAL
 MODSERIAL pc(USBTX, USBRX);
-uint8_t serial_ctrl = 0x00; 
-uint8_t fixed = 0x00;
+uint8_t serial_ctrl = 0x00; // Comando de controle serial
+uint8_t fixed = 0x00; // Salva o comando inicial de controle serial
+uint8_t p1 = 0x00; // Parte 1 do dado de 16 bits
+uint8_t p2 = 0x00; // Parte 2 do dado de 16 bits
 
 // NUMERO DE AMOSTRAS
-int smp = 0;
+uint16_t smp = 0;
 
 // FUNCOES
 void dma_adc_callback(void);
@@ -62,7 +61,6 @@ void adc_setup(uint8_t);
 void dac_setup(void);  
 void dma_setup(uint32_t*);
 void trigger(void); // interrupcao trigger 
-void print_int(int, uint32_t*); // print inteiro
 
 int main() {
     
@@ -96,8 +94,6 @@ int main() {
     inicio:
     if(no_trigger == true) led2 = 1; // DEBUG
     
-    //serial_ctrl = 0x00; // TESTE
-    
     fixed = serial_ctrl; // Armazena a configuracao serial
     
     dac_setup(); // Configura o DAC
@@ -110,11 +106,6 @@ int main() {
     
     dma_setup(v); // Configura o DMA 
     
-    
-    uint16_t value; // TEST
-    uint8_t p1 = 0x00; // TEST
-    uint8_t p2 = 0x00; // TEST
-
     // Inicia o DAC
     LPC_DAC->DACCTRL |= (3UL << 2); // Set DMA_ENA e CNT_ENA
     
@@ -129,32 +120,17 @@ int main() {
                 dma_completo = false; // Limpa a flag de dma completo
                 serial_ctrl &= ~0x03; // Limpa o trigger serial
                 
+                //pc.putc(fixed); // Informa o tamanho do pacote de dados - MODIFICAR
+                
+                // Envio dos Dados
                 for (int i = 0; i < smp; i++) {
-                    
-                    //print_int(i, v);
-                    
-                    value = ((v[i] >> 4) & 0xFFF);
                     
                     p1 = ((v[i] >> 12) & 0xF);
                     p2 = ((v[i] >> 4) & 0xFF); 
-                    //p1 = (uint8_t) (value >> 8);
-                    //p2 = (uint8_t) (value & 0xFF);
                     pc.putc(p1);
                     pc.putc(p2);
-                    
-                    //pc.printf("%d%c", p1, p2);
-                    //pc.putc(p2);
-                    //pc.printf("%c%c", p1,p2);
-                    
-                    
-                    //pc.printf("%d", ((v[i] >> 4) & 0xFFF));
-                    //pc.putc(',');
-                      
+                                      
                 }
-                
-                //pc.putc(0xFF); // Fim da leitura
-                
-                //pc.printf("%c%c%c%c", 0x1A, 0x22, 0x00, 0xF5); // TEST
                 
                 LPC_ADC->ADCR  = (1UL << 21) | ((fixed >> 5) << 8) | (1UL << 0); // PQ
                 LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
@@ -359,9 +335,10 @@ void dma_dac1_callback(void) {
                 
     LPC_ADC->ADCR |= (1UL << 16); // ATIVA O ADC
     
-    return;
+    //if (dma.irqType() == MODDMA::TcIrq) dma.clearTcIrq();
     
-    //if (dma.irqType() == MODDMA::TcIrq) dma.clearTcIrq(); 
+    return;
+     
 }
 
 // CALLBACK DMA DAC2
@@ -380,9 +357,8 @@ void dma_dac2_callback(void) {
                 
     //LPC_ADC->ADCR |= (1UL << 16); // ATIVA O ADC
     
-    return;
-    
     //if (dma.irqType() == MODDMA::TcIrq) dma.clearTcIrq(); 
+    return;
 }
  
 // ERRO DMA - UTILIZAR COMO FUNCAO DE ERRO PARA TODAS AS TRANSFERENCIAS
@@ -401,16 +377,4 @@ void trigger(void){
     triggon = true;
 
     return;    
-}
-
-void print_int(int i, uint32_t* v){
-    
-    uint16_t value = ((v[i] >> 4) & 0xFFF);
-    
-    char p1 = (char) value >> 4;  
-    char p2 = (char) value & 0x0F; 
-    
-    pc.putc(p1);
-    pc.putc(p2);
-        
 }
