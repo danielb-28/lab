@@ -1,2 +1,8 @@
-GUI/QT_ADC_1/boost_1_75_0a
-GUI/build-QT_ADC_1-Desktop-Profile 
+GUI/QT_ADC_1/boost_1_75_0/
+GUI/build-QT_ADC_1-Desktop-Profile/ 
+lpc1768/MODDMA/
+lpc1768/MODSERIAL/
+lpc1768/mbed/
+lpc1768/*.lib
+lpc1768/*.h
+lpc1768/*.html
