@@ -45,147 +45,21 @@
      <property name="rightMargin">
       <number>20</number>
      </property>
-     <item row="15" column="1" colspan="2">
-      <widget class="QPushButton" name="bt_parar">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
+     <item row="16" column="1">
+      <widget class="QCheckBox" name="checkBox">
        <property name="text">
-        <string>Parar</string>
+        <string>Inverter</string>
        </property>
       </widget>
      </item>
-     <item row="8" column="1">
-      <widget class="QLabel" name="label_4">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
+     <item row="7" column="1">
+      <widget class="QCheckBox" name="checkBox_2">
        <property name="text">
-        <string>Status / Porta: </string>
+        <string>Trigger Externo</string>
        </property>
       </widget>
      </item>
-     <item row="11" column="1">
-      <widget class="QLabel" name="label_6">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Número de Amostras:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="2">
-      <widget class="QLabel" name="label_baud">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>000000 baud</string>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="1" colspan="2">
-      <spacer name="verticalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="4" column="1" colspan="2">
-      <widget class="QComboBox" name="comboBox_amostras">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <item>
-        <property name="text">
-         <string>50</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>100</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>250</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>500</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>1000</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>2000</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>3000</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>4000</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="13" column="1" colspan="2">
-      <spacer name="verticalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="17" column="1" colspan="2">
+     <item row="23" column="1" colspan="2">
       <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
@@ -201,7 +75,7 @@
        </property>
       </spacer>
      </item>
-     <item row="8" column="2">
+     <item row="9" column="2">
       <widget class="QLabel" name="label_status">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -214,7 +88,7 @@
        </property>
       </widget>
      </item>
-     <item row="12" column="2">
+     <item row="13" column="2">
       <widget class="QLabel" name="label_clock">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -243,7 +117,7 @@
        </property>
       </widget>
      </item>
-     <item row="11" column="2">
+     <item row="12" column="2">
       <widget class="QLabel" name="label_amostras">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -256,7 +130,7 @@
        </property>
       </widget>
      </item>
-     <item row="10" column="1">
+     <item row="11" column="1">
       <widget class="QLabel" name="label_5">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -275,7 +149,7 @@
        </property>
       </widget>
      </item>
-     <item row="16" column="1" colspan="2">
+     <item row="22" column="1" colspan="2">
       <widget class="QPushButton" name="bt_salvar">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
@@ -338,7 +212,14 @@
        </item>
       </widget>
      </item>
-     <item row="9" column="1">
+     <item row="15" column="2">
+      <widget class="QLabel" name="label_9">
+       <property name="text">
+        <string>Alfa</string>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="1">
       <widget class="QLabel" name="label_8">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -383,7 +264,7 @@
        </property>
       </widget>
      </item>
-     <item row="9" column="2">
+     <item row="10" column="2">
       <widget class="QLabel" name="label_fps">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -396,7 +277,34 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="0" rowspan="18">
+     <item row="19" column="1" colspan="2">
+      <spacer name="verticalSpacer_5">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="18" column="1">
+      <widget class="QComboBox" name="comboBox_sinaldac">
+       <item>
+        <property name="text">
+         <string>Triangular</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Dente de Serra</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="0" column="0" rowspan="24">
       <widget class="QCustomPlot" name="plot_widget" native="true">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -406,7 +314,7 @@
        </property>
       </widget>
      </item>
-     <item row="12" column="1">
+     <item row="13" column="1">
       <widget class="QLabel" name="label_7">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -454,7 +362,7 @@
        </property>
       </spacer>
      </item>
-     <item row="14" column="1" colspan="2">
+     <item row="20" column="1" colspan="2">
       <widget class="QPushButton" name="bt_inicio">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
@@ -464,6 +372,169 @@
        </property>
        <property name="text">
         <string>Iniciar</string>
+       </property>
+      </widget>
+     </item>
+     <item row="21" column="1" colspan="2">
+      <widget class="QPushButton" name="bt_parar">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Parar</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="1">
+      <widget class="QLabel" name="label_4">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Status / Porta: </string>
+       </property>
+      </widget>
+     </item>
+     <item row="12" column="1">
+      <widget class="QLabel" name="label_6">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Número de Amostras:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="2">
+      <widget class="QLabel" name="label_baud">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>000000 baud</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="1" colspan="2">
+      <spacer name="verticalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="4" column="1" colspan="2">
+      <widget class="QComboBox" name="comboBox_amostras">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <item>
+        <property name="text">
+         <string>50</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>100</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>250</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>500</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>1000</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>2000</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>3000</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>4000</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="14" column="1" colspan="2">
+      <spacer name="verticalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="16" column="2">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox">
+       <property name="decimals">
+        <number>3</number>
+       </property>
+       <property name="maximum">
+        <double>1.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+       <property name="value">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="17" column="1">
+      <widget class="QLabel" name="label_10">
+       <property name="text">
+        <string>Sinal DAC</string>
        </property>
       </widget>
      </item>
