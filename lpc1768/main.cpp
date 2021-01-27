@@ -2,6 +2,7 @@
 #include <LPC17xx.h>
 #include "MODDMA.h"
 #include "MODSERIAL.h" 
+#include <string>
 
 // CONSTANTES DAC
 #define PPC 1024 // Pontos por ciclo
@@ -42,11 +43,13 @@ bool no_trigger = false;
 
 // VARIAVEIS SERIAL
 MODSERIAL pc(USBTX, USBRX);
-uint16_t serial_ctrl = 0; // Comando de controle serial
+uint8_t serial_ctrl = 0; // Comando de controle serial
 uint8_t fixed = 0; // Salva o comando inicial de controle serial
 uint16_t label = 0; // Label do pacote de dados
 bool serial_pos = 0; // TESTE
 bool serial_ok = false; // TESTE
+//string serial_str; // TESTE
+char serial_str[3]; 
 
 // VARIAVEIS ADC
 uint16_t smp = 0; // Amostras
@@ -71,34 +74,46 @@ int main() {
     // CONFIGURACAO SERIAL
     pc.baud(460800);
     pc.attach(&serialrx_callback, MODSERIAL::RxIrq);
+    pc.rxBufferSetSize(2); // TEST
     
     // COMANDO INICIO
-
-    while(serial_ok==false){
-        switch((serial_ctrl) & 0x3)
+    while(true){
+        switch(serial_str[0] & 0x03) // TEST
         {
                         
-            case 0x1:
+            case 0x01:
                 // CONFIGURACAO TRIGGER
                 trigg.fall(&trigger);
-            
-            case 0x2:
+                goto inicio;
+                
+            case 0x02:
                 no_trigger = true;
+                goto inicio;
                         
             default:
                 wait_us(0.000000000001);
+                //wait(0.5);
+                //pc.printf("%d,%d-", serial_str[0], serial_str[1]);
+                //pc.printf("%s", serial_str);
+                //pc.putc(serial_str[0]);
+                //pc.putc(serial_str[1]);
         }
                 
     }
-
+    
     inicio:
     if(no_trigger == true) led2 = 1; // DEBUG
     
-    fixed = serial_ctrl & 0x00FF; // Armazena a configuracao serial
+    //wait(0.5); // DEBUG
+    //pc.printf("%d_%d\n", serial_str[0], serial_str[1]); // DEBUG
+    
+    //led2 = 1; // DEBUG
+    
+    fixed = (uint8_t) serial_str[0]; // Armazena a configuracao serial
     
     dac_setup(); // Configura o DAC
     
-    adc_setup(serial_ctrl & 0x00FF); // Configura o ADC
+    adc_setup(fixed); // Configura o ADC
     
     // VETOR DE AMOSTRAS
     uint32_t v[smp]; // Armazena o ADDR inteiro
@@ -118,7 +133,7 @@ int main() {
             if (dma_completo) {
                 
                 dma_completo = false; // Limpa a flag de dma completo
-                serial_ctrl &= ~0x03; // Limpa o trigger serial
+                serial_str[0] &= ~0x03; // Limpa o trigger serial
                 
                 label = (smp << 4)/2; 
                 
@@ -140,7 +155,7 @@ int main() {
                 
                 // Trigger Serial
                 while(1){
-                    if((serial_ctrl & 0x03) != 0x02) break; // Modificar a forma como o trigger serial é feito
+                    if((serial_str[0] & 0x03) != 0x02) break; // Modificar a forma como o trigger serial é feito
                     wait_us(0.001);   
                 }
                 
@@ -177,11 +192,49 @@ void adc_setup(uint8_t adc_config){
     
     LPC_PINCON->PINSEL1 |=  (1UL << 14); // Seleciona o pino A0 
     
+    /*
     // Selecao do numero de amostras
     uint16_t comando_amostras = ((adc_config & 0x1c) >> 2);
     if (comando_amostras==0x00 || comando_amostras==0x01) smp = 50 * (1 + comando_amostras);
     else if (comando_amostras==0x02 || comando_amostras==0x03) smp = 250 * (1 + (comando_amostras >> 2) - 2);
     else smp = 1000 * (comando_amostras - 3);
+    */
+    
+    switch((adc_config & 0x1c) >> 2){ // Seleciona o tamanho do vetor de amostras
+        
+        case 0b000:
+            smp = 50;
+            break;
+        
+        case 0b001:
+            smp = 100;
+            break;
+    
+        case 0b010:
+            smp = 250;
+            break;
+        
+        case 0b011:
+            smp = 500;
+            break;
+        
+        case 0b100:
+            smp = 1000;
+            break;
+            
+        case 0b101:
+            smp = 2000;
+            break;
+            
+        case 0b110:
+            smp = 3000;
+            break;
+            
+        case 0b111:
+            smp = 4000;
+            break;
+            
+    }
     
     return;
 } 
@@ -193,8 +246,12 @@ void dac_setup(void)
     
     // Criacao do buffer para o DAC
     ///*
-    
-    if((serial_ctrl >> 8) & 0x1){
+    /*
+    wait(0.5); // DEBUG
+    pc.printf("%d_%d\n", serial_str[0], serial_str[1]); // DEBUG
+    while(1);
+    */
+    if(serial_str[1] & 0x01){
         
         // Dente de serra
         for (int i=0; i<PPC; i++) buffer_dac[0][i] = (1024/PPC) * i; 
@@ -275,6 +332,7 @@ void serialrx_callback(MODSERIAL_IRQ_INFO *q){
     //uint8_t p1 = pc.getc();
     //uint8_t p2 = pc.getc();
     
+    /*
     if(serial_pos==0){
         serial_ctrl = pc.getc();
         serial_ctrl = (uint16_t) serial_ctrl << 8;
@@ -286,8 +344,25 @@ void serialrx_callback(MODSERIAL_IRQ_INFO *q){
         serial_pos = 0;
         if(serial_ok==false) serial_ok = true;
     }
-    
+    */
     //serial_ctrl = (uint16_t) (p1 << 8) + (p2 & 0x00FF);
+    
+    
+    //pc.scanf("%s", serial_str);
+    //pc.scanf("%s", serial_str);
+    //serial_str.clear();
+    //serial_str += pc.getc();
+    //serial_str += pc.getcNb(); 
+    
+     
+    if (pc.rxBufferFull()){
+        pc.move(serial_str, 2);
+    }
+    
+    
+    //serial_str[0] = pc.getc();
+    
+    //serial_ctrl = pc.getc();
     
     return;
 } 

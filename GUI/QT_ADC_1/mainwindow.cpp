@@ -13,6 +13,8 @@ QTimer timer; // Timer update
 
 uint16_t comando; // Comando serial
 
+char comando_t[3]; // TEST
+
 bool primeira_exec2 = true; // Controle do update // MOD
 
 int x_max = 0; // Valor maximo de amostras
@@ -144,7 +146,7 @@ void MainWindow::serial_config()
 
     int clock = ui->comboBox_clock->currentIndex(); // Get clock selecionado
     int amostras = ui->comboBox_amostras->currentIndex(); // Get amostra selecionada
-    bool dac_sinal = ui->comboBox_sinaldac->currentIndex();
+    bool dac_sinal = ui->comboBox_sinaldac->currentIndex(); // TEST
 
     ui->label_amostras->setText(ui->comboBox_amostras->currentText()); // Indica o numero de amostras
     ui->label_clock->setText(ui->comboBox_clock->currentText()); // Indica o clock
@@ -155,9 +157,14 @@ void MainWindow::serial_config()
     comando = 0x02; // Trigger externo desativado
     comando |= (amostras << 2);
     comando |= (clock << 5);
-    comando |= (dac_sinal << 8);
 
     qInfo() << (uint16_t) comando; // DEBUG
+
+    comando_t[0] = (uint8_t) comando; // TEST
+    comando_t[1] = (uint8_t) dac_sinal; // TEST
+
+    qInfo() << (uint16_t) comando_t[0]; // DEBUG
+    qInfo() << (uint16_t) comando_t[1]; // DEBUG
 
 }
 
@@ -170,7 +177,7 @@ void MainWindow::serial_start(){
 
     std::string dados; // String de dados recebidos
 
-    boost::asio::write(mcu, boost::asio::buffer(&comando, 16)); // Comando para aquisição
+    boost::asio::write(mcu, boost::asio::buffer(comando_t, 16)); // Comando para aquisição
 
     boost::asio::read(mcu, boost::asio::dynamic_buffer(s_label, 2)); // Label do pacote de dados
 
