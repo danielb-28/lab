@@ -5,6 +5,8 @@
 
 #define BAUD 460800 // Baud rate
 
+#define N_PAR 3 // Numero de parametros monitorados
+
 // Serial
 boost::asio::io_service io; // Contexto
 boost::asio::serial_port mcu(io); // Porta
@@ -185,9 +187,13 @@ void MainWindow::serial_start(){
 
     i_label = (uint16_t)((s_label[0] << 8) + (s_label[1] & 0x00FF));
 
+    s_label.clear(); // Necessario
+
+    //qInfo() << "Label:" << i_label; // DEBUG
+
     if(i_label & 0x01){
 
-        boost::asio::read(mcu, boost::asio::dynamic_buffer(parametros, 4));
+        boost::asio::read(mcu, boost::asio::dynamic_buffer(parametros, 2*N_PAR));
 
         update_parametros(parametros);
 
@@ -195,25 +201,28 @@ void MainWindow::serial_start(){
 
      x_max = (i_label >> 4);
 
-     boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*(i_label >> 4)));
+     boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max));
 
      convert_dados(dados);
 }
 
 void MainWindow::update_parametros(std::string dados){
 
-    uint16_t dado_conv[2];
+    uint16_t dado_conv[N_PAR];
+    double valor[N_PAR];
 
-    for(int i=0; i<2; i++){
-        dado_conv[i] = (uint16_t)((dados[i] << 8) + (dados[i+1] & 0x00FF));
+    for(int i=0; i<2*N_PAR; i+=2){
+        dado_conv[i/2] = (uint16_t)((dados[i] << 8) + (dados[i+1] & 0x00FF));
+        valor[i/2] = 3.3 * ((double) dado_conv[i/2] / 4096);
     }
 
-    qInfo() << (uint8_t) dado_conv[0]; // DEBUG
-    qInfo() << (uint8_t) dado_conv[1]; // DEBUG
+    //qInfo() << (uint16_t) dado_conv[0]; // DEBUG
+    //qInfo() << (uint16_t) dado_conv[1]; // DEBUG
+    //qInfo() << (uint16_t) dado_conv[2]; // DEBUG
 
-    //ui->label_valor1->setText(QString::number((uint8_t)dado_conv[0]));
-    //ui->label_valor2->setText(QString::number((uint8_t)dado_conv[1]));
-    //ui->label_valor3->setText(QString::number((uint8_t)dados[2]));
+    ui->label_valor1->setText(QString::number(valor[0], 'f', 4));
+    ui->label_valor2->setText(QString::number(valor[1], 'f', 4));
+    ui->label_valor3->setText(QString::number(valor[2], 'f', 4));
 
 }
 
@@ -304,9 +313,6 @@ void MainWindow::serial_close()
     timer.disconnect(&timer, SIGNAL(timeout()), this, SLOT(plot_update())); // Desativa o timer de atualizacao do grafico
 
     // Send break serial
-    //SetCommBreak(mcu.native_handle());
-    //Sleep(1);
-    //ClearCommBreak(mcu.native_handle());
     tcsendbreak(mcu.native_handle(), 0);
     mcu.close(); // Fecha a porta serial
 }
