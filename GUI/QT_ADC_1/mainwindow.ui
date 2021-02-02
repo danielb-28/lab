@@ -45,6 +45,35 @@
      <property name="rightMargin">
       <number>20</number>
      </property>
+     <item row="18" column="2">
+      <widget class="QComboBox" name="comboBox">
+       <item>
+        <property name="text">
+         <string>1.00x</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>0.75x</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>0.50x</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>0.25x</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>0.10x</string>
+        </property>
+       </item>
+      </widget>
+     </item>
      <item row="16" column="1">
       <widget class="QCheckBox" name="checkBox">
        <property name="text">
@@ -307,16 +336,6 @@
        </item>
       </widget>
      </item>
-     <item row="0" column="0" rowspan="24">
-      <widget class="QCustomPlot" name="plot_widget" native="true">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
-     </item>
      <item row="13" column="1">
       <widget class="QLabel" name="label_7">
        <property name="sizePolicy">
@@ -540,6 +559,121 @@
         <string>Sinal DAC</string>
        </property>
       </widget>
+     </item>
+     <item row="17" column="2">
+      <widget class="QLabel" name="label_11">
+       <property name="text">
+        <string>Subamostragem</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" rowspan="23">
+      <widget class="QCustomPlot" name="plot_widget" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_17">
+         <property name="text">
+          <string>Valor 1:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_valor1">
+         <property name="text">
+          <string>0.000</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_15">
+         <property name="text">
+          <string>Valor 2:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_valor2">
+         <property name="text">
+          <string>0.000</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_13">
+         <property name="text">
+          <string>Valor 3:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_valor3">
+         <property name="text">
+          <string>0.000</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
      </item>
     </layout>
    </widget>

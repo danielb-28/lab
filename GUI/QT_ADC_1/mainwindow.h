@@ -41,6 +41,7 @@ private:
     void serial_start();
     void plot();
     void convert_dados(std::string dados);
+    void update_parametros(std::string dados);
 
 private slots:
 

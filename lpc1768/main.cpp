@@ -17,9 +17,9 @@ DigitalOut led3(LED3);
 DigitalOut led4(LED4); // Erro DMA
 
 // PULLDOWN ADC
-DigitalOut a1(A1);
-DigitalOut a2(A2);
-DigitalOut a3(A3);
+//DigitalOut a1(A1);
+//DigitalOut a2(A2);
+//DigitalOut a3(A3);
 DigitalOut a4(A4);
 DigitalOut a5(A5);
 
@@ -34,7 +34,7 @@ InterruptIn trigg(p5);
 
 // DMA
 MODDMA dma;
-MODDMA_Config *conf_adc, *conf_dac1, *conf_dac2;
+MODDMA_Config *conf_adc, *conf_adc2, *conf_dac1, *conf_dac2;
 
 // VARIAVEL DE CONTROLE DMA 
 bool dma_completo = false;
@@ -54,9 +54,14 @@ char serial_str[3];
 // VARIAVEIS ADC
 uint16_t smp = 0; // Amostras
 bool adc_completo = true;
+uint8_t read_cnt = 0; // TEST
+uint32_t param[2]; // TEST
+bool adc_param_completo = true; // TEST
+bool adc_param_pendente = false; // TEST
 
 // FUNCOES
 void dma_adc_callback(void);
+void dma_adc_param_callback(void); // TEST
 void dma_dac1_callback(void);
 void dma_dac2_callback(void);
 void dma_erro(void);
@@ -92,23 +97,13 @@ int main() {
                         
             default:
                 wait_us(0.000000000001);
-                //wait(0.5);
-                //pc.printf("%d,%d-", serial_str[0], serial_str[1]);
-                //pc.printf("%s", serial_str);
-                //pc.putc(serial_str[0]);
-                //pc.putc(serial_str[1]);
         }
                 
     }
     
     inicio:
     if(no_trigger == true) led2 = 1; // DEBUG
-    
-    //wait(0.5); // DEBUG
-    //pc.printf("%d_%d\n", serial_str[0], serial_str[1]); // DEBUG
-    
-    //led2 = 1; // DEBUG
-    
+
     fixed = (uint8_t) serial_str[0]; // Armazena a configuracao serial
     
     dac_setup(); // Configura o DAC
@@ -117,7 +112,6 @@ int main() {
     
     // VETOR DE AMOSTRAS
     uint32_t v[smp]; // Armazena o ADDR inteiro
-    //memset(v, 0, smp * sizeof(v[0])); // Zera o vetor de amostras
     
     dma_setup(v); // Configura o DMA 
     
@@ -135,21 +129,37 @@ int main() {
                 dma_completo = false; // Limpa a flag de dma completo
                 serial_str[0] &= ~0x03; // Limpa o trigger serial
                 
-                label = (smp << 4)/2; 
+                //label = (smp << 4)/2;
+                label = 0;
+                label |= (smp << 4); 
+                if(adc_param_pendente) label |= 0x01;     
                 
                 pc.putc((label >> 8) & 0xFF);
                 pc.putc(label & 0xFF);
                 
                 // Envio dos Dados
-                for (int i = 0; i < smp; i+=2) {
+                
+                if(adc_param_pendente){
+                    
+                    led = !led;
+                    
+                    for (int i=0; i<2; i++) {
+                    
+                        pc.putc((param[i] >> 12) & 0xF);
+                        pc.putc((param[i] >> 4) & 0xFF);
+                                      
+                    }
+                     
+                    adc_param_pendente = false;
+                    
+                }
+                
+                for (int i = 0; i < smp; i++) {
                     
                     pc.putc((v[i] >> 12) & 0xF);
                     pc.putc((v[i] >> 4) & 0xFF);
                                       
                 }
-                
-                LPC_ADC->ADCR  = (1UL << 21) | ((fixed >> 5) << 8) | (1UL << 0); // PQ
-                LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
                 
                 adc_completo = true;
                 
@@ -191,15 +201,17 @@ void adc_setup(uint8_t adc_config){
     LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
     
     LPC_PINCON->PINSEL1 |=  (1UL << 14); // Seleciona o pino A0 
+    LPC_PINCON->PINSEL1 |=  (1UL << 16); // Seleciona o pino A1
+    LPC_PINCON->PINSEL1 |=  (1UL << 18); // Seleciona o pino A2
     
-    /*
     // Selecao do numero de amostras
+    /*
     uint16_t comando_amostras = ((adc_config & 0x1c) >> 2);
     if (comando_amostras==0x00 || comando_amostras==0x01) smp = 50 * (1 + comando_amostras);
     else if (comando_amostras==0x02 || comando_amostras==0x03) smp = 250 * (1 + (comando_amostras >> 2) - 2);
     else smp = 1000 * (comando_amostras - 3);
     */
-    
+    ///*
     switch((adc_config & 0x1c) >> 2){ // Seleciona o tamanho do vetor de amostras
         
         case 0b000:
@@ -235,7 +247,7 @@ void adc_setup(uint8_t adc_config){
             break;
             
     }
-    
+    //*/
     return;
 } 
 
@@ -245,12 +257,6 @@ void dac_setup(void)
 {
     
     // Criacao do buffer para o DAC
-    ///*
-    /*
-    wait(0.5); // DEBUG
-    pc.printf("%d_%d\n", serial_str[0], serial_str[1]); // DEBUG
-    while(1);
-    */
     if(serial_str[1] & 0x01){
         
         // Dente de serra
@@ -295,6 +301,20 @@ void dma_setup(uint32_t* adress_serial){
     
     dma.Prepare(conf_adc); // Carrega a configuracao do ADC
     
+    
+    // DMA - ADC - 2 
+    conf_adc2 = new MODDMA_Config;
+    conf_adc2
+     ->channelNum    (MODDMA::Channel_3)
+     ->srcMemAddr    (0)
+     ->dstMemAddr    ((uint32_t) param) // ALTERAR
+     ->transferSize  (2)
+     ->transferType  (MODDMA::p2m)
+     ->srcConn       (MODDMA::ADC)
+     ->attach_tc     (&dma_adc_param_callback)
+     ->attach_err    (&dma_erro)
+    ; // end conf
+    
     // DMA - DAC - 1
     conf_dac1 = new MODDMA_Config;
     conf_dac1
@@ -314,7 +334,7 @@ void dma_setup(uint32_t* adress_serial){
     conf_dac2 = new MODDMA_Config;
     conf_dac2
      ->channelNum    (MODDMA::Channel_1)
-     ->srcMemAddr    ((uint32_t) &buffer_dac[1])
+     ->srcMemAddr    ((uint32_t) &buffer_dac[0])
      ->dstMemAddr    (MODDMA::DAC) 
      ->transferSize  (PPC)
      ->transferType  (MODDMA::m2p)
@@ -326,43 +346,8 @@ void dma_setup(uint32_t* adress_serial){
 
 // CALBACK SERIAL RX
 void serialrx_callback(MODSERIAL_IRQ_INFO *q){
-    //const char* st;
-    //pc.scanf(st);
-    //serial_ctrl = (uint16_t) st[1] << 8 + st[0] & 0x00FF;
-    //uint8_t p1 = pc.getc();
-    //uint8_t p2 = pc.getc();
     
-    /*
-    if(serial_pos==0){
-        serial_ctrl = pc.getc();
-        serial_ctrl = (uint16_t) serial_ctrl << 8;
-        serial_pos = 1;
-    }
-    
-    else{
-        serial_ctrl |= (pc.getc() & 0x00FF); 
-        serial_pos = 0;
-        if(serial_ok==false) serial_ok = true;
-    }
-    */
-    //serial_ctrl = (uint16_t) (p1 << 8) + (p2 & 0x00FF);
-    
-    
-    //pc.scanf("%s", serial_str);
-    //pc.scanf("%s", serial_str);
-    //serial_str.clear();
-    //serial_str += pc.getc();
-    //serial_str += pc.getcNb(); 
-    
-     
-    if (pc.rxBufferFull()){
-        pc.move(serial_str, 2);
-    }
-    
-    
-    //serial_str[0] = pc.getc();
-    
-    //serial_ctrl = pc.getc();
+    if (pc.rxBufferFull()) pc.move(serial_str, 2);
     
     return;
 } 
@@ -389,6 +374,17 @@ void dma_adc_callback(void) {
     
 }
 
+void dma_adc_param_callback(void){
+    
+    LPC_ADC->ADCR |= ~(1UL << 16); // Desativa o burst
+    LPC_ADC->ADINTEN = 0; // Desativa as interrupcoes
+    
+    led3 = !led3;
+    adc_param_pendente = true;
+    adc_completo = true;
+    return;    
+}
+
 // CALLBACK DMA DAC1
 void dma_dac1_callback(void) { 
     
@@ -398,19 +394,33 @@ void dma_dac1_callback(void) {
     //MODDMA_Config *config = dma.getConfig();
     //dma.Disable((MODDMA::CHANNELS)config->channelNum());   
     
-    // Troca para o buffer[1]
-    dma.Prepare(conf_dac2); // ALTERAR
-    
     if(adc_completo)
     {
-        dma.Prepare(conf_adc);        
-        LPC_ADC->ADCR |= (1UL << 16); // ATIVA O ADC
-        adc_completo = false;
         
+        if(read_cnt!=255){ 
+            read_cnt++;       
+            LPC_ADC->ADCR  = (1UL << 21) | ((fixed >> 5) << 8) | (1UL << 0); // PQ
+            LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
+            dma.Prepare(conf_adc);
+            adc_completo = false;        
+            LPC_ADC->ADCR |= (1UL << 16); // ATIVA O ADC
+        }
+        else{
+            LPC_ADC->ADCR  = (1UL << 21) | ((fixed >> 5) << 8) | (6UL << 0); // PQ
+            LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
+            dma.Prepare(conf_adc2);        
+            adc_completo = false;
+            read_cnt = 0;
+            LPC_ADC->ADCR |= (1UL << 16); // ATIVA O ADC
+        }
+ 
     }
     
     //if (dma.irqType() == MODDMA::TcIrq) dma.clearTcIrq();
-    
+        
+    // Troca para o buffer[1]
+    dma.Prepare(conf_dac2); // ALTERAR
+
     return;
      
 }
@@ -424,6 +434,26 @@ void dma_dac2_callback(void) {
     //MODDMA_Config *config = dma.getConfig();
     //dma.Disable((MODDMA::CHANNELS)config->channelNum());   
    
+    if(adc_completo)
+    {
+        
+        if(read_cnt!=255){        
+            LPC_ADC->ADCR  = (1UL << 21) | ((fixed >> 5) << 8) | (1UL << 0); // PQ
+            LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
+            dma.Prepare(conf_adc);
+            adc_completo = false;        
+            LPC_ADC->ADCR |= (1UL << 16); // ATIVA O ADC
+        }
+        else{
+            LPC_ADC->ADCR  = (1UL << 21) | ((fixed >> 5) << 8) | (6UL << 0); // PQ
+            LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
+            dma.Prepare(conf_adc2);        
+            adc_completo = false;
+            read_cnt = 0;
+            LPC_ADC->ADCR |= (1UL << 16); // ATIVA O ADC
+        }
+ 
+    }   
     // Troca para o buffer[0] 
     dma.Prepare(conf_dac1); // ALTERAR
     
@@ -432,14 +462,6 @@ void dma_dac2_callback(void) {
     //LPC_ADC->ADCR |= (1UL << 16); // ATIVA O ADC
     
     //if (dma.irqType() == MODDMA::TcIrq) dma.clearTcIrq(); 
-    
-    if(adc_completo)
-    {
-        dma.Prepare(conf_adc);        
-        LPC_ADC->ADCR |= (1UL << 16); // ATIVA O ADC
-        adc_completo = false;
-        
-    }
     
     return;
 }

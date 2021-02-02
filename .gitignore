@@ -7,3 +7,4 @@ lpc1768/*.lib
 lpc1768/*.h
 lpc1768/*.html
 lpc1768/*.bld
+lpc1768/.*
