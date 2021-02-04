@@ -33,17 +33,6 @@ INCLUDEPATH += "./boost_1_75_0"
 
 DEPENDPATH += "./boost_1_75_0"
 
-#LIBS += -L"C:\Cpp_Libs\boost_1_73_0\stage\lib" \
-#        -llibboost_iostreams-vc142-mt-x64-1_73 \
-#        -llibboost_chrono-vc142-mt-x64-1_73 \
-#        -llibboost_system-vc142-mt-x64-1_73 \
-#        -llibboost_wserialization-vc142-mt-x64-1_73 \
-#        -llibboost_timer-vc142-mt-x64-1_73 \
-#        -llibboost_filesystem-vc142-mt-x64-1_73 \
-#        -llibboost_date_time-vc142-mt-x64-1_73 \
-#        -llibboost_thread-vc142-mt-x64-1_73 \
-#        -llibboost_regex-vc142-mt-x64-1_73
-
 LIBS += -L"./boost_1_75_0/libs" \
 
 win32 {
