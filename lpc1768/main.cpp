@@ -3,7 +3,7 @@
 #include "MODDMA.h"
 #include "MODSERIAL.h" 
 #include <string>
-//a
+
 #define N_PAR 3
 
 // CONSTANTES DAC
@@ -41,6 +41,7 @@ bool no_trigger = false;
 // VARIAVEIS SERIAL
 MODSERIAL pc(USBTX, USBRX); // Porta serial
 uint8_t fixed = 0; // Salva o comando inicial de controle serial
+uint8_t serial_fixed[2]; // TEST
 uint16_t label = 0; // Label do pacote de dados
 char serial_str[3]; // Comando de controle serial
 
@@ -98,6 +99,9 @@ int main() {
 
     fixed = (uint8_t) serial_str[0]; // Armazena a configuracao serial
     
+    serial_fixed[0] = serial_str[0]; // TEST
+    serial_fixed[1] = serial_str[1]; // TEST
+    
     dac_setup(); // Configura o DAC
     
     adc_setup(fixed); // Configura o ADC
@@ -112,9 +116,12 @@ int main() {
     
     // Inicia o ADC
     LPC_ADC->ADCR |= (1UL << 16); // Ativa o ADC no modo burst
+    
+    
+    uint16_t smp_enviadas = smp / ((uint16_t) ((serial_fixed[1] >> 1) & 0x0F) + 1);
         
-        // Main loop
-        while(1){
+    // Main loop
+    while(1){
             
             if (dma_completo) {
                 
@@ -123,8 +130,14 @@ int main() {
                 
                 // Envio do Label
                 //label = (smp << 4)/2; // TEST subsample
-                label = 0;
-                label |= (smp << 4); 
+                //label = 0;
+                 
+                //label |= (smp_enviadas << 4);
+                
+                //label = (smp << 4)/2; // TEST subsample
+                
+                label = (smp_enviadas << 4); 
+                
                 if(adc_param_pendente) label |= 0x01;     
                 
                 pc.putc((label >> 8) & 0xFF);
@@ -147,7 +160,7 @@ int main() {
                 }
                 
                 // Envio dos Dados
-                for (int i = 0; i < smp; i++) {
+                for (int i = 0; i < smp; i+=smp/smp_enviadas) {
                     
                     pc.putc((v[i] >> 12) & 0xF);
                     pc.putc((v[i] >> 4) & 0xFF);
@@ -302,7 +315,7 @@ void dma_setup(uint32_t* adress_serial){
     conf_adc2
      ->channelNum    (MODDMA::Channel_3)
      ->srcMemAddr    (0)
-     ->dstMemAddr    ((uint32_t) param) // ALTERAR
+     ->dstMemAddr    ((uint32_t) param)
      ->transferSize  (N_PAR)
      ->transferType  (MODDMA::p2m)
      ->srcConn       (MODDMA::ADC)
@@ -389,27 +402,28 @@ void dma_dac1_callback(void) {
     //MODDMA_Config *config = dma.getConfig();
     //dma.Disable((MODDMA::CHANNELS)config->channelNum());   
     
+    
     if(adc_completo==true)
     {
-        if(read_cnt<20){ 
-            LPC_ADC->ADCR &= ~0xFF;
-            read_cnt++;       
+        
+        LPC_ADC->ADCR &= ~0x7; // Limpa select
+        LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
+        adc_completo = false;
+        
+        if(read_cnt<20){  
+            read_cnt++;      
             LPC_ADC->ADCR  = (1UL << 21) | ((fixed >> 5) << 8) | (1UL << 0); // Enable, Clock, Canal 0
-            LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
-            dma.Prepare(conf_adc);
-            adc_completo = false;        
-            LPC_ADC->ADCR |= (1UL << 16); // ATIVA O ADC
-        }
-        else{
-            LPC_ADC->ADCR &= ~0xFF;
-            LPC_ADC->ADCR  = (1UL << 21) | ((fixed >> 5) << 8) | (22UL << 0); // Enable, Clock, Canal 1-2-4
-            LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
-            dma.Prepare(conf_adc2);        
-            adc_completo = false;
-            read_cnt = 0;
-            LPC_ADC->ADCR |= (1UL << 16); // ATIVA O ADC
+            dma.Prepare(conf_adc);        
         }
         
+        else{
+            read_cnt = 0;
+            LPC_ADC->ADCR  = (1UL << 21) | ((fixed >> 5) << 8) | (22UL << 0); // Enable, Clock, Canal 1-2-4
+            dma.Prepare(conf_adc2);        
+        }
+        
+        LPC_ADC->ADCR |= (1UL << 16); // ATIVA O ADC
+ 
     }
     
     //if (dma.irqType() == MODDMA::TcIrq) dma.clearTcIrq();
@@ -433,24 +447,23 @@ void dma_dac2_callback(void) {
     if(adc_completo==true)
     {
         
+        LPC_ADC->ADCR &= ~0x7; // Limpa select
+        LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
+        adc_completo = false;
+        
         if(read_cnt<20){  
-            LPC_ADC->ADCR &= ~0x7;
             read_cnt++;      
             LPC_ADC->ADCR  = (1UL << 21) | ((fixed >> 5) << 8) | (1UL << 0); // Enable, Clock, Canal 0
-            LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
-            dma.Prepare(conf_adc);
-            adc_completo = false;        
-            LPC_ADC->ADCR |= (1UL << 16); // ATIVA O ADC
+            dma.Prepare(conf_adc);        
         }
+        
         else{
-            LPC_ADC->ADCR &= ~0x7;
-            LPC_ADC->ADCR  = (1UL << 21) | ((fixed >> 5) << 8) | (22UL << 0); // Enable, Clock, Canal 1-2-4
-            LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
-            dma.Prepare(conf_adc2);        
-            adc_completo = false;
             read_cnt = 0;
-            LPC_ADC->ADCR |= (1UL << 16); // ATIVA O ADC
+            LPC_ADC->ADCR  = (1UL << 21) | ((fixed >> 5) << 8) | (22UL << 0); // Enable, Clock, Canal 1-2-4
+            dma.Prepare(conf_adc2);        
         }
+        
+        LPC_ADC->ADCR |= (1UL << 16); // ATIVA O ADC
  
     }   
     // Troca para o buffer[0] 

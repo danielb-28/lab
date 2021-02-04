@@ -518,30 +518,25 @@
       </layout>
      </item>
      <item row="18" column="2">
-      <widget class="QComboBox" name="comboBox">
+      <widget class="QComboBox" name="comboBox_subamostragem">
        <item>
         <property name="text">
-         <string>1.00x</string>
+         <string>1</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>0.75x</string>
+         <string>2</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>0.50x</string>
+         <string>5</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>0.25x</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>0.10x</string>
+         <string>10</string>
         </property>
        </item>
       </widget>
@@ -559,7 +554,7 @@
         <string>Trigger Externo</string>
        </property>
        <property name="checked">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>

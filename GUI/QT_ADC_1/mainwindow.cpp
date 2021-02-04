@@ -149,21 +149,24 @@ void MainWindow::serial_config()
     int clock = ui->comboBox_clock->currentIndex(); // Get clock selecionado
     int amostras = ui->comboBox_amostras->currentIndex(); // Get amostra selecionada
     bool dac_sinal = ui->comboBox_sinaldac->currentIndex(); // TEST
+    uint8_t subsmp = (uint8_t) ui->comboBox_subamostragem->currentText().toInt() - 1; // TEST
 
     ui->label_amostras->setText(ui->comboBox_amostras->currentText()); // Indica o numero de amostras
     ui->label_clock->setText(ui->comboBox_clock->currentText()); // Indica o clock
 
-    x_max = ui->comboBox_amostras->currentText().toInt(); // Get tamanho do eixo horizontal
+    x_max = ui->comboBox_amostras->currentText().toInt(); // Get tamanho do eixo horizontal - Desatualizado
 
-    // Criacao do comando serial
+    // Criacao do comando serial - MOD
     comando = 0x02; // Trigger externo desativado
     comando |= (amostras << 2);
     comando |= (clock << 5);
 
-    qInfo() << (uint8_t) comando; // DEBUG
-
     comando_t[0] = comando; // TEST
     comando_t[1] = (uint8_t) dac_sinal; // TEST
+
+    qInfo() << "Sub:" << subsmp;
+
+    comando_t[1] |= (subsmp << 1);
 
     qInfo() << (uint8_t) comando_t[0]; // DEBUG
     qInfo() << (uint8_t) comando_t[1]; // DEBUG
@@ -189,7 +192,7 @@ void MainWindow::serial_start(){
 
     s_label.clear(); // Necessario
 
-    //qInfo() << "Label:" << i_label; // DEBUG
+    qInfo() << "Label:" << i_label; // DEBUG
 
     if(i_label & 0x01){
 
@@ -262,7 +265,7 @@ void MainWindow::convert_dados(std::string dados)
             else{
                 this->y_data.append((double) dado_conv);
             }
-            this->x_data.append((double) index/2);
+            this->x_data.append((double) index/2+1);
         }
 
         else
@@ -274,7 +277,7 @@ void MainWindow::convert_dados(std::string dados)
             else{
                 this->y_data.replace(index/2, (double) dado_conv);
             }
-            this->x_data.replace(index/2, (double) index/2);
+            this->x_data.replace(index/2, (double) index/2+1);
          }
 
         dado_ant = dado_conv;
@@ -292,7 +295,7 @@ void MainWindow::plot(){
         ui->plot_widget->clearGraphs();
         ui->plot_widget->addGraph();
         ui->plot_widget->graph(0)->setData(this->x_data, this->y_data);
-        ui->plot_widget->xAxis->setRange(0, x_max);
+        ui->plot_widget->xAxis->setRange(1, x_max);
         ui->plot_widget->yAxis->setRange(0, 4096);
 
         // Configuracoes graficas
