@@ -8,3 +8,8 @@ lpc1768/*.h
 lpc1768/*.html
 lpc1768/*.bld
 lpc1768/.*
+misc/mcp41010_test/.*
+/misc/mcp41010_test/*.html
+/misc/mcp41010_test/*.bld
+/misc/mcp41010_test/*.h
+/misc/mcp41010_test/mbed/

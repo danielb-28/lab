@@ -10,6 +10,7 @@
 #include <boost/asio/serial_port.hpp>
 #include <boost/lexical_cast/lexical_cast_old.hpp>
 #include <boost/chrono.hpp>
+#include <boost/circular_buffer.hpp>
 
 #include <termios.h>
 
@@ -42,6 +43,8 @@ private:
     void plot();
     void convert_dados(std::string dados);
     void update_parametros(std::string dados);
+    void write_parametros(); // TEST
+    void write_dados(); // TEST
 
 private slots:
 

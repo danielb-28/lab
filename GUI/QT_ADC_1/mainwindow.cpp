@@ -7,6 +7,8 @@
 
 #define N_PAR 3 // Numero de parametros monitorados
 
+#define TMP_PATH /tmp // Path para arquivos temporarios
+
 // Serial
 boost::asio::io_service io; // Contexto
 boost::asio::serial_port mcu(io); // Porta
@@ -22,6 +24,11 @@ bool primeira_exec2 = true; // Controle do update // MOD
 int x_max = 0; // Valor maximo de amostras
 
 bool inverter = false; // Inverter plot
+
+// TEST
+boost::circular_buffer<double> param1_buffer(50);
+boost::circular_buffer<double> param2_buffer(50);
+boost::circular_buffer<double> param3_buffer(50);
 
 // Tempo para monitorar o fps
 auto t1 = std::chrono::steady_clock::now();
@@ -119,12 +126,49 @@ void MainWindow::bt_parar_click()
     // Fechar porta serial
     this->serial_close();
 
+    // Salvar dados - Pasta tmp
+    this->write_dados();
+    this->write_parametros();
 }
 
 // Salvar grafico
-void MainWindow::bt_salvar_click()
-{
+void MainWindow::bt_salvar_click(){
 
+}
+
+void MainWindow::write_parametros(){
+
+    if(!param1_buffer.full()||!param2_buffer.full()||!param3_buffer.full()) return; // Verifica se os buffers estao cheios
+
+    QFile arquivo("parametros.txt");
+    if (!arquivo.open(QIODevice::WriteOnly | QIODevice::Text)){
+        qInfo() << "Erro ao Abrir o Arquivo";
+        return;
+    }
+
+    QTextStream arquivo_in(&arquivo);
+
+    for(uint i=0; i<(uint)param1_buffer.capacity(); i++){
+        arquivo_in << param1_buffer.at(i) << "," << param2_buffer.at(i) << "," << param3_buffer.at(i) << "\n";
+    }
+
+    arquivo.close();
+}
+
+void MainWindow::write_dados(){
+    QFile arquivo("plot.txt");
+    if (!arquivo.open(QIODevice::WriteOnly | QIODevice::Text)){
+        qInfo() << "Erro ao Abrir o Arquivo";
+        return;
+    }
+
+    QTextStream arquivo_in(&arquivo);
+
+    for(int i=0; i<this->y_data.size(); i++){
+        arquivo_in << this->y_data[i] << "\n";
+    }
+
+    arquivo.close();
 }
 
 // Rotina para abrir a porta e configurar a baud rate
@@ -192,7 +236,7 @@ void MainWindow::serial_start(){
 
     s_label.clear(); // Necessario
 
-    qInfo() << "Label:" << i_label; // DEBUG
+    //qInfo() << "Label:" << i_label; // DEBUG
 
     if(i_label & 0x01){
 
@@ -223,6 +267,16 @@ void MainWindow::update_parametros(std::string dados){
     //qInfo() << (uint16_t) dado_conv[1]; // DEBUG
     //qInfo() << (uint16_t) dado_conv[2]; // DEBUG
 
+    // Buffers circulares
+    param1_buffer.push_back(valor[0]);
+    param2_buffer.push_back(valor[1]);
+    param3_buffer.push_back(valor[2]);
+
+    if(param1_buffer.full()) qInfo() << "Buffer1 Cheio";
+    if(param2_buffer.full()) qInfo() << "Buffer2 Cheio";
+    if(param3_buffer.full()) qInfo() << "Buffer3 Cheio";
+
+    // Update UI
     ui->label_valor1->setText(QString::number(valor[0], 'f', 4));
     ui->label_valor2->setText(QString::number(valor[1], 'f', 4));
     ui->label_valor3->setText(QString::number(valor[2], 'f', 4));
@@ -311,8 +365,7 @@ void MainWindow::plot(){
 }
 
 // Rotina de parada
-void MainWindow::serial_close()
-{
+void MainWindow::serial_close(){
     timer.disconnect(&timer, SIGNAL(timeout()), this, SLOT(plot_update())); // Desativa o timer de atualizacao do grafico
 
     // Send break serial
