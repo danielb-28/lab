@@ -15,9 +15,11 @@ boost::asio::serial_port mcu(io); // Porta
 
 QTimer timer; // Timer update
 
-uint8_t comando; // Comando serial
+uint16_t comando; // Comando serial // TEST
 
-char comando_t[3]; // TEST
+uint16_t comando_pot; // Comando potenciometro serial // TEST
+
+char comando_t[5]; // TEST
 
 bool primeira_exec2 = true; // Controle do update // MOD
 
@@ -115,6 +117,7 @@ void MainWindow::bt_parar_click()
 {
     // Botoes - Enable/Disable
     ui->bt_inicio->setEnabled(true);
+
     ui->bt_parar->setEnabled(false);
     ui->bt_salvar->setEnabled(true);
 
@@ -126,7 +129,8 @@ void MainWindow::bt_parar_click()
     // Fechar porta serial
     this->serial_close();
 
-    // Salvar dados - Pasta tmp
+    // Salvar dados - Pasta tmp - Alterar path para /tmp
+
     this->write_dados();
     this->write_parametros();
 }
@@ -136,6 +140,7 @@ void MainWindow::bt_salvar_click(){
 
 }
 
+// Salva os parametros
 void MainWindow::write_parametros(){
 
     if(!param1_buffer.full()||!param2_buffer.full()||!param3_buffer.full()) return; // Verifica se os buffers estao cheios
@@ -155,6 +160,7 @@ void MainWindow::write_parametros(){
     arquivo.close();
 }
 
+// Salva os dados
 void MainWindow::write_dados(){
     QFile arquivo("plot.txt");
     if (!arquivo.open(QIODevice::WriteOnly | QIODevice::Text)){
@@ -186,11 +192,11 @@ void MainWindow::serial_open()
 
 }
 
-// Rotina para configurar o comando serial
+// Rotina para criar o comando serial
 void MainWindow::serial_config()
 {
 
-    int clock = ui->comboBox_clock->currentIndex(); // Get clock selecionado
+    uint16_t clock = ui->comboBox_clock->currentIndex(); // Get clock selecionado
     int amostras = ui->comboBox_amostras->currentIndex(); // Get amostra selecionada
     bool dac_sinal = ui->comboBox_sinaldac->currentIndex(); // TEST
     uint8_t subsmp = (uint8_t) ui->comboBox_subamostragem->currentText().toInt() - 1; // TEST
@@ -200,20 +206,19 @@ void MainWindow::serial_config()
 
     x_max = ui->comboBox_amostras->currentText().toInt(); // Get tamanho do eixo horizontal - Desatualizado
 
-    // Criacao do comando serial - MOD
-    comando = 0x02; // Trigger externo desativado
-    comando |= (amostras << 2);
-    comando |= (clock << 5);
+    // Criacao do comando serial - MOD - Reformular todo o processo de criacao do comando serial
+    comando = 0x01;
+    comando |= (uint16_t) subsmp << 4;
+    comando |= (uint16_t) amostras << 8;
+    comando |= (uint16_t) dac_sinal << 11;
+    comando |= (uint16_t) clock << 13;
 
-    comando_t[0] = comando; // TEST
-    comando_t[1] = (uint8_t) dac_sinal; // TEST
+    //qInfo() << (uint16_t) comando; // DEBUG
 
-    qInfo() << "Sub:" << subsmp;
-
-    comando_t[1] |= (subsmp << 1);
-
-    qInfo() << (uint8_t) comando_t[0]; // DEBUG
-    qInfo() << (uint8_t) comando_t[1]; // DEBUG
+    // TEST - VALORES PARA O POTENCIOMETRO - executado apenas no inicio
+    //comando_t[2] = (uint8_t) std::floor((ui->doubleSpinBox_set1->value()/100) * 255);
+    //comando_t[3] = (uint8_t) std::floor((ui->doubleSpinBox_set2->value()/100) * 255);
+    //comando_t[4] = (uint8_t) std::floor((ui->doubleSpinBox_set3->value()/100) * 255);
 
 }
 
@@ -228,7 +233,33 @@ void MainWindow::serial_start(){
 
     std::string parametros; // String de parametros recebidos
 
-    boost::asio::write(mcu, boost::asio::buffer(comando_t, 16)); // Comando para aquisição
+    // TEST - VALORES PARA O POTENCIOMETRO - executado a cada update
+    //comando_t[2] = (uint8_t) std::floor((ui->doubleSpinBox_set1->value()/100) * 255);
+    comando_t[2] = (uint8_t) ui->doubleSpinBox_set1->value();
+    //comando_t[3] = (uint8_t) std::floor((ui->doubleSpinBox_set2->value()/100) * 255);
+    comando_t[3] = (uint8_t) ui->doubleSpinBox_set2->value();
+    //comando_t[4] = (uint8_t) std::floor((ui->doubleSpinBox_set3->value()/100) * 255);
+
+    boost::asio::write(mcu, boost::asio::buffer(&comando, 16)); // Comando para aquisição
+
+    // Potenciometros - TEST
+    comando_pot = 0x02;
+
+    comando_pot |= (uint16_t) comando_t[2] << 8;
+
+    qInfo() << "POT_1:" << (uint8_t) comando_t[2]; // DEBUG
+
+    boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 16));
+
+    comando_pot = 0x03;
+
+    comando_pot |= (uint16_t) comando_t[3] << 8;
+
+    qInfo() << "POT_0:" << (uint8_t) comando_t[3]; // DEBUG
+
+    boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 16));
+
+    //
 
     boost::asio::read(mcu, boost::asio::dynamic_buffer(s_label, 2)); // Label do pacote de dados
 
@@ -253,6 +284,7 @@ void MainWindow::serial_start(){
      convert_dados(dados);
 }
 
+// Atualizacao dos parametros
 void MainWindow::update_parametros(std::string dados){
 
     uint16_t dado_conv[N_PAR];
@@ -272,9 +304,9 @@ void MainWindow::update_parametros(std::string dados){
     param2_buffer.push_back(valor[1]);
     param3_buffer.push_back(valor[2]);
 
-    if(param1_buffer.full()) qInfo() << "Buffer1 Cheio";
-    if(param2_buffer.full()) qInfo() << "Buffer2 Cheio";
-    if(param3_buffer.full()) qInfo() << "Buffer3 Cheio";
+    //if(param1_buffer.full()) qInfo() << "Buffer1 Cheio"; // DEBUG
+    //if(param2_buffer.full()) qInfo() << "Buffer2 Cheio"; // DEBUG
+    //if(param3_buffer.full()) qInfo() << "Buffer3 Cheio"; // DEBUG
 
     // Update UI
     ui->label_valor1->setText(QString::number(valor[0], 'f', 4));
