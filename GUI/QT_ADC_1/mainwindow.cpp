@@ -19,7 +19,7 @@ uint16_t comando; // Comando serial // TEST
 
 uint16_t comando_pot; // Comando potenciometro serial // TEST
 
-char comando_t[5]; // TEST
+char comando_t[5]; // MOD
 
 bool primeira_exec2 = true; // Controle do update // MOD
 
