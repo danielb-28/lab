@@ -14,8 +14,6 @@
 
 #include <termios.h>
 
-//#include <WinBase.h>
-
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

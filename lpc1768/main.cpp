@@ -46,9 +46,6 @@ MODDMA_Config *conf_adc, *conf_adc2, *conf_dac1, *conf_dac2;
 // VARIAVEL DE CONTROLE DMA 
 bool dma_completo = false;
 
-bool triggon = false;
-bool no_trigger = false;
-
 // VARIAVEIS SERIAL
 MODSERIAL pc(USBTX, USBRX); // Porta serial
 uint8_t serial_fixed[2]; // Salva o comando inicial de controle serial
@@ -70,12 +67,12 @@ void dma_dac2_callback(void);
 void dma_erro(void);
 
 void serialrx_callback(MODSERIAL_IRQ_INFO *q); // serial recebido
-void adc_setup(uint8_t);
-void dac_setup(void);  
-void dma_setup(uint32_t*);
-void trigger(void); // interrupcao trigger 
 
-void spi_setup(uint8_t bits, uint8_t mode, uint32_t freq);
+void adc_setup(uint8_t); // Configuracao adc
+void dac_setup(uint8_t);  // Configuracao dac
+void dma_setup(uint32_t*); // Configuracao dma
+void spi_setup(uint8_t bits, uint8_t mode, uint32_t freq); // Configuracao spi
+
 void spi_pot(uint8_t id, uint8_t value);
 
 int main() {
@@ -97,7 +94,6 @@ int main() {
         {
                         
             case 0x01: // MUDAR
-                no_trigger = true;
                 goto inicio;
                         
             default:
@@ -107,12 +103,12 @@ int main() {
     }
     
     inicio:
-    led2 = 1; // DEBUG
+    led2 = 1; // LED Inicio
     
     serial_fixed[0] = (uint8_t) serial_str[0]; // TEST
     serial_fixed[1] = (uint8_t) serial_str[1]; // TEST
     
-    dac_setup(); // Configura o DAC
+    dac_setup(serial_fixed[1]); // Configura o DAC
     
     adc_setup(serial_fixed[1]); // Configura o ADC
     
@@ -128,7 +124,7 @@ int main() {
     LPC_ADC->ADCR |= (1UL << 16); // Ativa o ADC no modo burst
     
     
-    uint16_t smp_enviadas = smp / ((uint16_t) ((serial_fixed[0] >> 4) & 0x0F) + 1); // MOD - comando trocado
+    uint16_t smp_enviadas = smp / ((uint16_t) ((serial_fixed[0] >> 4) & 0x0F) + 1); // Quantidade de amostras que serao enviadas
         
     // Main loop
     while(1){
@@ -264,11 +260,11 @@ void adc_setup(uint8_t adc_config){
 
 
 // CONFIGURACAO DAC
-void dac_setup(void) // Passar o valor para a funcao ao inves de usar variavel global
+void dac_setup(uint8_t dac_config) // Passar o valor para a funcao ao inves de usar variavel global
 {
     
     // Criacao do buffer para o DAC
-    if((serial_str[1] >> 3) & 0x01){
+    if((dac_config >> 3) & 0x01){
         
         // Dente de serra
         for (int i=0; i<PPC; i++) buffer_dac[0][i] = (1024/PPC) * i; 

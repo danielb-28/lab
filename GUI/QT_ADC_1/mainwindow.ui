@@ -234,7 +234,10 @@
        <item row="0" column="2">
         <widget class="QDoubleSpinBox" name="doubleSpinBox_set1">
          <property name="decimals">
-          <number>4</number>
+          <number>0</number>
+         </property>
+         <property name="minimum">
+          <double>1.000000000000000</double>
          </property>
          <property name="maximum">
           <double>255.000000000000000</double>
@@ -247,7 +250,10 @@
        <item row="0" column="5">
         <widget class="QDoubleSpinBox" name="doubleSpinBox_set2">
          <property name="decimals">
-          <number>4</number>
+          <number>0</number>
+         </property>
+         <property name="minimum">
+          <double>1.000000000000000</double>
          </property>
          <property name="maximum">
           <double>255.000000000000000</double>
