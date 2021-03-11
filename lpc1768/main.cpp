@@ -4,6 +4,7 @@
 #include "MODSERIAL.h" 
 #include <string>
 
+// CONSTANTES
 #define N_PAR 3 // Numero de parametros monitorados
 
 // CONSTANTES SPI
@@ -19,7 +20,7 @@
 #define BIAS 1 // Power Mode
 
 // LEDs
-DigitalOut led(LED1); // Amostragem sinal
+DigitalOut led1(LED1); // Amostragem sinal
 DigitalOut led2(LED2); // Rotina iniciada
 DigitalOut led3(LED3); // Amostragem parametros
 DigitalOut led4(LED4); // Erro DMA
@@ -66,7 +67,7 @@ void dma_dac1_callback(void);
 void dma_dac2_callback(void);
 void dma_erro(void);
 
-void serialrx_callback(MODSERIAL_IRQ_INFO *q); // serial recebido
+void serialrx_callback(MODSERIAL_IRQ_INFO *q); // Serial recebido
 
 void adc_setup(uint8_t); // Configuracao adc
 void dac_setup(uint8_t);  // Configuracao dac
@@ -77,15 +78,13 @@ void spi_pot(uint8_t id, uint8_t value);
 
 int main() {
     
-    led = true; // DEBUG
-    
     // CONFIGURACAO SERIAL
     pc.baud(460800);
     pc.attach(&serialrx_callback, MODSERIAL::RxIrq);
-    pc.rxBufferSetSize(2);
+    pc.rxBufferSetSize(2); // bytes
     
     // CONFIGURACAO SPI
-    spi_setup(16, 0, 1000000);
+    spi_setup(16, 0, 1000000); // bits, modo, freq
     
     // COMANDO INICIO
     while(true){
@@ -103,7 +102,7 @@ int main() {
     }
     
     inicio:
-    led2 = 1; // LED Inicio
+    led2 = true; // LED - Inicio
     
     serial_fixed[0] = (uint8_t) serial_str[0]; // TEST
     serial_fixed[1] = (uint8_t) serial_str[1]; // TEST
@@ -116,6 +115,8 @@ int main() {
     uint32_t v[smp]; // Armazena o ADDR inteiro
     
     dma_setup(v); // Configura o DMA 
+    
+    led1 = true; // LED - Amostragem sinal
     
     // Inicia o DAC
     LPC_DAC->DACCTRL |= (3UL << 2); // Set DMA_ENA e CNT_ENA
@@ -157,7 +158,7 @@ int main() {
                 // Envio dos Parametros
                 if(adc_param_pendente){
                     
-                    led = !led;
+                    led1 = !led1; // LED - Amostragem Sinal
                     
                     for (int i=0; i<N_PAR; i++) {
                 
@@ -373,12 +374,13 @@ void dma_adc_callback(void) {
     
 }
 
+// CALBACK ADC PARAMETROS
 void dma_adc_param_callback(void){
     
     LPC_ADC->ADCR &= ~(1UL << 16); // Desativa o burst
     LPC_ADC->ADINTEN = 0; // Desativa as interrupcoes
     
-    led3 = !led3;
+    led3 = !led3; // LED - Amostragem parametros
     adc_param_pendente = true;
     adc_completo = true;
     return;    
@@ -461,17 +463,18 @@ void dma_dac2_callback(void) {
     return;
 }
  
-// ERRO DMA - UTILIZAR COMO FUNCAO DE ERRO PARA TODAS AS TRANSFERENCIAS
+// CALLBACK ERRO DMA - FUNCAO DE ERRO PARA TODAS AS TRANSFERENCIAS
 void dma_erro(void) {
     
     LPC_ADC->ADCR &= ~(1UL << 16); // Desativa o burst
     LPC_ADC->ADINTEN = 0; // Desativa as interrupcoes
     
-    led4 = true; // Led erro DMA
+    led4 = true; // LED - Erro DMA
 
     return;
 }
 
+// CONFIGURACAO SPI
 void spi_setup(uint8_t bits, uint8_t mode, uint32_t freq){
     spi.format(bits, mode);
     spi.frequency(freq); 
@@ -480,6 +483,7 @@ void spi_setup(uint8_t bits, uint8_t mode, uint32_t freq){
     return;
 }
 
+// CONTROLE POTENCIOMETROS SPI
 void spi_pot(uint8_t id, uint8_t value){
     switch(id){
         case 0:
@@ -508,33 +512,6 @@ void spi_pot(uint8_t id, uint8_t value){
 
 // CALBACK SERIAL RX
 void serialrx_callback(MODSERIAL_IRQ_INFO *q){
-    
-    //if (pc.rxBufferFull()) pc.move(serial_str, 2);
-    if (pc.rxBufferFull()){
-        pc.move(serial_str, 2);
-        
-        /*
-        switch(serial_str[0] & 0x0F){
-            case 0x01:
-            break;
-            
-            case 0x02:
-                spi_val[0] = (uint8_t) serial_str[1];
-                memset(serial_str, 0, 3*sizeof(serial_str[0])); // TEST
-            break;
-            
-            case 0x03:
-                spi_val[1] = (uint8_t) serial_str[1];
-                memset(serial_str, 0, 3*sizeof(serial_str[0])); // TEST
-            break;
-            
-            case 0x04:
-                spi_val[2] = (uint8_t) serial_str[1];
-            break;
-        }
-        */
-    }
-    
-    
+    if (pc.rxBufferFull()) pc.move(serial_str, 2);
     return;
 } 

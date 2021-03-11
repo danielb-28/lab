@@ -9,11 +9,15 @@
 
 #define TMP_PATH /tmp // Path para arquivos temporarios
 
+#define DEBUG_FLAG 1 // Ativa o DEBUG (1 - Mensagens de acoes e erros)
+
+#define FPS 1 // Ativa a contagem de FPS
+
 // Serial
 boost::asio::io_service io; // Contexto
 boost::asio::serial_port mcu(io); // Porta
 
-QTimer timer; // Timer update
+QTimer timer; // Timer para update
 
 uint16_t comando; // Comando serial // TEST
 
@@ -21,13 +25,13 @@ uint16_t comando_pot; // Comando potenciometro serial // TEST
 
 char comando_t[5]; // MOD
 
-bool primeira_exec2 = true; // Controle do update // MOD
+bool primeira_exec = true; // Controle do update - marcador de primeira execucao
 
 int x_max = 0; // Valor maximo de amostras
 
 bool inverter = false; // Inverter plot
 
-// TEST
+// Buffers circulares para os parametros
 boost::circular_buffer<double> param1_buffer(50);
 boost::circular_buffer<double> param2_buffer(50);
 boost::circular_buffer<double> param3_buffer(50);
@@ -56,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->bt_parar->setEnabled(false);
     ui->bt_salvar->setEnabled(true); 
 
-    // Serial Ports
+    // Serial Ports - listar
     Q_FOREACH(QSerialPortInfo porta_ava, QSerialPortInfo::availablePorts())
     {
             ui->comboBox_porta->addItem(porta_ava.portName());
@@ -88,33 +92,51 @@ void MainWindow::bt_inicio_click()
     ui->comboBox_clock->setEnabled(false);
 
     // Rotina de inicio
-    this->serial_open();
-    this->serial_config();
-    this->serial_start();
-    this->plot();
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "===Inicio"; // DEBUG 1 2
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "---Abrindo Porta..."; // DEBUG 1 2
 
-    timer.start(); // Inicia o timer
+    this->serial_open(); // Abre porta serial
+
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "---Configurando Serial..."; // DEBUG 1 2
+
+    this->serial_config(); // Configura porta serial
+
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "---Aquisicao..."; // DEBUG 1 2
+
+    this->serial_start(); // Aquisicao dos dados
+
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "---Plot..."; // DEBUG 1 2
+
+    this->plot(); // Plota os dados
+
+    //primeira_exec = false;
+
+    timer.start(); // Inicia o timer e a rotina de update
 
 }
 
 // Rotina de update - executada a cada timeout
 void MainWindow::plot_update()
 {
-    t1 = std::chrono::steady_clock::now(); // Inicio
+    if(FPS) t1 = std::chrono::steady_clock::now(); // Inicio
 
-    this->serial_start();
-    this->plot();
+    this->serial_start(); // Aquisicao dos dados
+    this->plot(); // Plota os dados
 
-    t2 = std::chrono::steady_clock::now(); // Fim
-    std::chrono::duration<double> total = t2 - t1; // Tempo update
+    if(FPS)
+    {
+        t2 = std::chrono::steady_clock::now(); // Fim
+        std::chrono::duration<double> total = t2 - t1; // Tempo update
 
-    ui->label_fps->setText(QString::number(1/total.count(), 'g', 2)); // Fps
-
+        ui->label_fps->setText(QString::number(1/total.count(), 'g', 2)); // Fps instantaneo
+    }
 }
 
 // Rotina de parada
 void MainWindow::bt_parar_click()
 {
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "===Parada"; // DEBUG 1 2
+
     // Botoes - Enable/Disable
     ui->bt_inicio->setEnabled(true);
 
@@ -126,28 +148,36 @@ void MainWindow::bt_parar_click()
     ui->comboBox_amostras->setEnabled(true);
     ui->comboBox_clock->setEnabled(true);
 
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "---Fechando porta serial..."; // DEBUG 1 2
+
     // Fechar porta serial
     this->serial_close();
-
-    // Salvar dados - Pasta tmp - Alterar path para /tmp
-
-    this->write_dados();
-    this->write_parametros();
 }
 
 // Salvar grafico
 void MainWindow::bt_salvar_click(){
+
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "Salvando dados e parametros..."; // DEBUG 1 2
+
+    // Salvar dados - Pasta tmp - Alterar path para /tmp
+    this->write_dados();
+    this->write_parametros();
 
 }
 
 // Salva os parametros
 void MainWindow::write_parametros(){
 
-    if(!param1_buffer.full()||!param2_buffer.full()||!param3_buffer.full()) return; // Verifica se os buffers estao cheios
+    QString path_parametros = "parametros.txt";
 
-    QFile arquivo("parametros.txt");
+    // Verifica se os buffers estao cheios
+    if(!param1_buffer.full()||!param2_buffer.full()||!param3_buffer.full()){
+        if(DEBUG_FLAG>=0) qInfo() << "+++Erro ao salvar os parametros: os buffers nao estao cheios"; // DEBUG 0
+        return;
+    }
+    QFile arquivo(path_parametros);
     if (!arquivo.open(QIODevice::WriteOnly | QIODevice::Text)){
-        qInfo() << "Erro ao Abrir o Arquivo";
+        if(DEBUG_FLAG>=0) qInfo() << "+++Erro ao Abrir o Arquivo: " << path_parametros; // DEBUG 0
         return;
     }
 
@@ -158,13 +188,21 @@ void MainWindow::write_parametros(){
     }
 
     arquivo.close();
+
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "Parametros salvos em: " << path_parametros; // DEBUG 1 2
+
+    return;
+
 }
 
 // Salva os dados
 void MainWindow::write_dados(){
-    QFile arquivo("plot.txt");
+
+    QString path_dados = "plot.txt";
+
+    QFile arquivo(path_dados);
     if (!arquivo.open(QIODevice::WriteOnly | QIODevice::Text)){
-        qInfo() << "Erro ao Abrir o Arquivo";
+        if(DEBUG_FLAG>=0) qInfo() << "+++Erro ao Abrir o Arquivo: " << path_dados; // DEBUG 0
         return;
     }
 
@@ -175,6 +213,10 @@ void MainWindow::write_dados(){
     }
 
     arquivo.close();
+
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "Dados salvos em: " << path_dados; // DEBUG 1 2
+
+    return;
 }
 
 // Rotina para abrir a porta e configurar a baud rate
@@ -187,8 +229,10 @@ void MainWindow::serial_open()
     mcu.open(porta.toUtf8().constData()); // Abre a porta
     mcu.set_option(boost::asio::serial_port_base::baud_rate(BAUD)); // Configura a baud rate
 
-    ui->label_status->setText("Conectado / " + porta); // Indica a porta aberta
+    ui->label_status->setText("Conectado " + porta); // Indica a porta aberta
     ui->label_baud->setText(QString::number(BAUD)); // Indica a baud rate
+
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "Conectado " << porta; // DEBUG 1 2
 
 }
 
@@ -213,13 +257,8 @@ void MainWindow::serial_config()
     comando |= (uint16_t) dac_sinal << 11;
     comando |= (uint16_t) clock << 13;
 
-    //qInfo() << (uint16_t) comando; // DEBUG
 
-    // TEST - VALORES PARA O POTENCIOMETRO - executado apenas no inicio
-    //comando_t[2] = (uint8_t) std::floor((ui->doubleSpinBox_set1->value()/100) * 255);
-    //comando_t[3] = (uint8_t) std::floor((ui->doubleSpinBox_set2->value()/100) * 255);
-    //comando_t[4] = (uint8_t) std::floor((ui->doubleSpinBox_set3->value()/100) * 255);
-
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2||DEBUG_FLAG==3) qInfo() << "Comando serial criado: " << (uint16_t) comando; // DEBUG 1 2 3
 }
 
 // Envia o comando e recebe os dados
@@ -233,7 +272,7 @@ void MainWindow::serial_start(){
 
     std::string parametros; // String de parametros recebidos
 
-    // TEST - VALORES PARA O POTENCIOMETRO - executado a cada update
+    // TEST - VALORES PARA O POTENCIOMETRO
     //comando_t[2] = (uint8_t) std::floor((ui->doubleSpinBox_set1->value()/100) * 255);
     comando_t[2] = (uint8_t) ui->doubleSpinBox_set1->value();
     //comando_t[3] = (uint8_t) std::floor((ui->doubleSpinBox_set2->value()/100) * 255);
@@ -247,7 +286,7 @@ void MainWindow::serial_start(){
 
     comando_pot |= (uint16_t) comando_t[2] << 8;
 
-    qInfo() << "POT_1:" << (uint8_t) comando_t[2]; // DEBUG
+    //qInfo() << "POT_1:" << (uint8_t) comando_t[2]; // DEBUG
 
     boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 16));
 
@@ -255,7 +294,7 @@ void MainWindow::serial_start(){
 
     comando_pot |= (uint16_t) comando_t[3] << 8;
 
-    qInfo() << "POT_0:" << (uint8_t) comando_t[3]; // DEBUG
+    //qInfo() << "POT_0:" << (uint8_t) comando_t[3]; // DEBUG
 
     boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 16));
 
@@ -265,7 +304,7 @@ void MainWindow::serial_start(){
 
     i_label = (uint16_t)((s_label[0] << 8) + (s_label[1] & 0x00FF));
 
-    s_label.clear(); // Necessario
+    s_label.clear(); // Necessario - PQ
 
     //qInfo() << "Label:" << i_label; // DEBUG
 
@@ -326,7 +365,7 @@ void MainWindow::convert_dados(std::string dados)
     float alfa = this->ui->doubleSpinBox->value(); // TEST
     inverter = this->ui->checkBox->checkState(); // TEST
 
-    if (primeira_exec2)
+    if (primeira_exec)
     {
         this->x_data.clear();
         this->y_data.clear();
@@ -344,7 +383,7 @@ void MainWindow::convert_dados(std::string dados)
 
         }
 
-        if (primeira_exec2){
+        if (primeira_exec){
             if(inverter==true){
                 this->y_data.append(4096 - (double) dado_conv);
             }
@@ -375,19 +414,33 @@ void MainWindow::convert_dados(std::string dados)
 // Rotina de plot
 void MainWindow::plot(){
 
-    if (primeira_exec2){
+    // Valores para os eixos
+    int y_min = 0;
+    int y_max = 4096;
+    int x_min = 1;
+
+    if (primeira_exec){
 
         // Configuracao do plot
         ui->plot_widget->clearGraphs();
         ui->plot_widget->addGraph();
         ui->plot_widget->graph(0)->setData(this->x_data, this->y_data);
-        ui->plot_widget->xAxis->setRange(1, x_max);
-        ui->plot_widget->yAxis->setRange(0, 4096);
+        ui->plot_widget->xAxis->setRange(x_min, x_max);
+        ui->plot_widget->yAxis->setRange(y_min, y_max);
 
         // Configuracoes graficas
         ui->plot_widget->graph(0)->setAntialiased(true);
         ui->plot_widget->graph(0)->setAdaptiveSampling(true);
-
+        /*
+        if(DEBUG_FLAG==1||DEBUG_FLAG==2)
+        {
+            qInfo() << "---Plot: ";
+            qInfo() << "X minimo: " << x_min;
+            qInfo() << "X maximo: " << x_max;
+            qInfo() << "Y minimo: " << y_min;
+            qInfo() << "Y maximo: " << y_max;
+        }
+        */
     }
 
     // Rotina de atualizacao do plot
@@ -402,5 +455,9 @@ void MainWindow::serial_close(){
 
     // Send break serial
     tcsendbreak(mcu.native_handle(), 0);
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "Microcontrolador resetado"; // DEBUG 1 2
+
     mcu.close(); // Fecha a porta serial
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "Porta serial fechada"; // DEBUG 1 2
+
 }

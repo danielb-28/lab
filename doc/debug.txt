@@ -1,0 +1,22 @@
+===== Funcionamento da Flag de Debug =====
+
+Formato das mensagens:
+	===<mensagem>: Rotina
+	---<mensagem>: Ponto da rotina
+	+++<mensagem>: Mensagem de erro
+	<mensagem>: Mensagem padrao
+
+Modo 0: Desativado
+	Apenas mensagens de erro
+
+Modo 1: Rotinas e acoes simples (nao inclui a rotina de update)
+	Indicadores de rotina
+	Indicadores de ponto da rotina
+	Acoes dentro das rotinas
+
+Modo 2: Rotinas e acoes ampliado (inclui a rotina de update)
+	Indicadores do modo 1
+	Indicadores dentro da rotina de update
+
+Modo 3: Debug Serial
+
