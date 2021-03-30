@@ -1,5 +1,4 @@
 - Flags de debug
-- Documentar protocolo
 - Controle de posicao do grafico
 - Plotar graficos dos parametros
 - Alterar a flag de debug por argumento na linha de comando

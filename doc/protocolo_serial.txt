@@ -1,1 +1,31 @@
 ==== Descricao do Protocolo Serial =====
+- 16 bits
+- <data_8bits> <data_4bits> <label_4bits>
+
+- Comando Setup:
+
+	<clock_3bits>X <onda_dac_1bit><amostras_3bits> <subamostragem_4bits> 0001
+
+- Comando Potenciometro:]
+
+	<valor_8bits> XXXX 0010 - Potenciometro 1
+	<valor_8bits> XXXX 0011 - Potenciometro 2
+	<valor_8bits> XXXX 0100 - Potenciometro 3
+
+- Comando de Label:
+
+	<amostras_enviadas_12bits> 	XXX0 - Envio de amostras
+	<amostras_enviadas_12bits>	XXX1 - Envio de parametros e amostras 
+
+- Rotina da GUI:
+
+	- Envio do comando de setup
+	- Envio do comando dos potenciometros (pot1 e pot2)
+	- Recebimento do comando de label
+		
+		- Apenas amostras:
+			- Recebimento dos parametros (3)
+			- Recebimento das amostras
+
+		- Parametros e amostras: 
+ 			- Recebimento das amostras

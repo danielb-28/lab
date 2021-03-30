@@ -1,0 +1,17 @@
+
+SPI
+	- MOSI	- p5 
+	- MISO	- p6
+	- CLK 	- p7
+	- CS0	- p8
+	- CS1	- p9
+	- CS2	- XX
+
+ADC
+	- ADC_SIGN	- p15
+	- ADC_PAR1	- p16
+	- ADC_PAR2	- p17
+	- ADC_PAR3 	- p19
+
+DAC
+	- DAC_OUT 	- p18
