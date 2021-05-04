@@ -13,8 +13,8 @@ public:
 
 private:
 
-    boost::asio::io_service io; // Contexto
-    boost::asio::serial_port porta(this->io); // Porta
+    //boost::asio::io_service io; // Contexto
+    //boost::asio::serial_port porta(this->io); // Porta
 
     std::vector<comando_serial> vetor_comandos;
 
@@ -24,7 +24,7 @@ private:
 
     void serial_send(comando_serial comando);
 
-    void serial_receive(std::string* dados_recebidos);
+    void serial_receive(std::string* dados_recebidos, uint tamanho_bytes);
 
 };
 

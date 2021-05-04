@@ -1,11 +1,12 @@
 #ifndef COMANDO_SERIAL_H
 #define COMANDO_SERIAL_H
 
+#include<stdint.h>
 
 class comando_serial
 {
 public:
-    ccomando_serial(uint8_t label = 0x01, uint8_t data_4 = 0x00, uint8_t data_8 = 0x00);
+    comando_serial(uint8_t label_4, uint8_t data_4, uint8_t data_8);
     uint16_t Valor();
     uint8_t Tamanho_bits();
     uint8_t Tamanho_bytes();

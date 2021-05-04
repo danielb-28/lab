@@ -13,6 +13,10 @@
 
 #include <termios.h>
 
+#include <comando_serial.h>
+
+#include <vector>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -29,22 +33,35 @@ private:
 
     Ui::MainWindow *ui;
 
-    QVector<double> x_data;
-    QVector<double> y_data;
-    QVector<double> x_data_param; // TEST
-    QVector<double> y_data_param1; // TEST
-    QVector<double> y_data_param2; // TEST
-    QVector<double> y_data_param3; // TEST
+    // Serial
+    std::vector<comando_serial> comandos[4];
 
-    void serial_open(); // Abrir a porta e configurar a baud rate
-    void serial_config(); // Criar o comando serial
-    void serial_start(); // Envia o comando e recebe os dados
-    void convert_dados(std::string dados); // Conversao e processamento dos dados
+    // Grafico sinal
+    QVector<double> x_data; // MOD
+    QVector<double> y_data; // MOD
+
+    // Grafico parametros
+    QVector<double> x_data_param; // MOD
+    QVector<double> y_data_param1; // MOD
+    QVector<double> y_data_param2; // MOD
+    QVector<double> y_data_param3; // MOD
+
+    // Serial
+    void serial_open(); // Abrir a porta e configurar a baud rate // MOD
+    void serial_config(); // Criar o comando serial // MOD
+    void serial_start(); // Envia o comando e recebe os dados // MOD
+    void serial_close(); // Fechar a porta serial // MOD
+
+    // Processamento
+    void convert_dados(std::string dados); // Sinal
+    void update_parametros(std::string dados); // Parametros
+
+    // Grafico
     void plot(); // Plot
-    void update_parametros(std::string dados); // Atualizacao dos parametros
+
+    // IO
     void write_parametros(); // TEST
     void write_dados(); // TEST
-    void serial_close(); // Fechar a porta serial
 
 private slots:
 

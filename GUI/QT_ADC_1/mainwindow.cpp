@@ -3,11 +3,11 @@
 
 #include <QDebug>
 
-#define BAUD 460800 // Baud rate
+#define BAUD 460800 // Baud rate // MOD
 
-#define N_PAR 3 // Numero de parametros monitorados
+#define N_PAR 3 // Numero de parametros monitorados // MOD
 
-#define TMP_PATH /tmp // Path para arquivos temporarios
+#define TMP_PATH /tmp // Path para arquivos temporarios // MOD
 
 #define DEBUG_FLAG 1 // Ativa o DEBUG (1 - Mensagens de acoes e erros)
 
@@ -16,27 +16,27 @@
 #define VREF 3.298 // Tensao de referencia para o ADC
 
 // Serial
-boost::asio::io_service io; // Contexto
-boost::asio::serial_port mcu(io); // Porta
+boost::asio::io_service io; // Contexto - MOD
+boost::asio::serial_port mcu(io); // Porta - MOD
 
 QTimer timer; // Timer para update
 
-uint16_t comando; // Comando serial
+uint16_t comando; // Comando serial - MOD
 
-uint16_t comando_pot; // Comando potenciometro serial // TEST
+uint16_t comando_pot; // Comando potenciometro serial - MOD
 
-char comando_t[5]; // MOD
+char comando_t[5]; // MOD - MOD
 
-bool primeira_exec = true; // Controle do update - marcador de primeira execucao
+bool primeira_exec = true; // Controle do update - marcador de primeira execucao - DESATIVADO
 
-int x_max = 0; // Valor maximo de amostras
+int x_max = 0; // Valor maximo de amostras - MOD
 
-bool inverter = false; // Inverter plot
+bool inverter = false; // Inverter plot - MOD
 
 // Buffers circulares para os parametros
-boost::circular_buffer<double> param1_buffer(50);
-boost::circular_buffer<double> param2_buffer(50);
-boost::circular_buffer<double> param3_buffer(50);
+boost::circular_buffer<double> param1_buffer(50); // MOD
+boost::circular_buffer<double> param2_buffer(50); // MOD
+boost::circular_buffer<double> param3_buffer(50); // MOD
 
 // Tempo para monitorar o fps
 auto t1 = std::chrono::steady_clock::now();
@@ -49,13 +49,15 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     this->setCentralWidget(ui->horizontalFrame); // Set widget central
 
-    // Grafico
+    // Graficos
     ui->plot_widget->addGraph(); // Sinal/parametro1
     ui->plot_widget->addGraph(); // Parametro2 - TEST
     ui->plot_widget->addGraph(); // Parametro3 - TEST
-    ui->checkBox_parametro1->hide(); // Selecao 1 - TEST
-    ui->checkBox_parametro2->hide(); // Selecao 2 - TEST
-    ui->checkBox_parametro3->hide(); // Selecao 3 - TEST
+
+    // Selecao Grafico - Hide
+    ui->checkBox_parametro1->hide(); // Selecao 1
+    ui->checkBox_parametro2->hide(); // Selecao 2
+    ui->checkBox_parametro3->hide(); // Selecao 3
 
     // Botoes - Connect
     connect(ui->bt_inicio, SIGNAL(released()), this, SLOT(bt_inicio_click()));
@@ -85,8 +87,8 @@ void MainWindow::bt_inicio_click()
 {
 
     // Timer update
-    connect(&timer, SIGNAL(timeout()), this, SLOT(plot_update()));
-    timer.setInterval(0);
+    connect(&timer, SIGNAL(timeout()), this, SLOT(plot_update())); // MOD - passar para o construtor
+    timer.setInterval(0); // MOD - passar para o construtor
 
     // Botoes - Enable/Disable
     ui->bt_inicio->setEnabled(false);
@@ -116,7 +118,7 @@ void MainWindow::bt_inicio_click()
 
     this->plot(); // Plota os dados
 
-    //primeira_exec = false;
+    //primeira_exec = false; // MOD
 
     timer.start(); // Inicia o timer e a rotina de update
 
@@ -166,7 +168,7 @@ void MainWindow::bt_salvar_click(){
 
     if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "Salvando dados e parametros..."; // DEBUG 1 2
 
-    // Salvar dados - Pasta tmp - Alterar path para /tmp
+    // Salvar dados - Pasta tmp - Alterar path para /tmp // MOD
     this->write_dados();
     this->write_parametros();
 
@@ -244,28 +246,30 @@ void MainWindow::serial_open() // MOD
 }
 
 // Rotina para criar o comando serial
-void MainWindow::serial_config()
+void MainWindow::serial_config() // MOD
 {
 
-    uint16_t clock = ui->comboBox_clock->currentIndex(); // Get clock selecionado
-    int amostras = ui->comboBox_amostras->currentIndex(); // Get amostra selecionada
-    bool dac_sinal = ui->comboBox_sinaldac->currentIndex(); // TEST
-    uint8_t subsmp = (uint8_t) ui->comboBox_subamostragem->currentText().toInt() - 1; // TEST
+    uint16_t clock_ui = ui->comboBox_clock->currentIndex(); // Get clock selecionado
+    int amostras_ui = ui->comboBox_amostras->currentIndex(); // Get amostra selecionada
+    bool dac_sinal_ui = ui->comboBox_sinaldac->currentIndex(); // TEST
+    uint8_t subsmp_ui = (uint8_t) ui->comboBox_subamostragem->currentText().toInt() - 1; // TEST
 
     ui->label_amostras->setText(ui->comboBox_amostras->currentText()); // Indica o numero de amostras
     ui->label_clock->setText(ui->comboBox_clock->currentText()); // Indica o clock
 
     x_max = ui->comboBox_amostras->currentText().toInt(); // Get tamanho do eixo horizontal - Desatualizado
 
-    // Criacao do comando serial - MOD
-    comando = 0x01;
-    comando |= (uint16_t) subsmp << 4;
-    comando |= (uint16_t) amostras << 8;
-    comando |= (uint16_t) dac_sinal << 11;
-    comando |= (uint16_t) clock << 13;
-    //
+    uint8_t comando_8 = (uint8_t) amostras_ui;
+    comando_8 |= (uint8_t) dac_sinal_ui << 3;
+    comando_8 |= (uint8_t) clock_ui << 5;
 
-    if(DEBUG_FLAG==1||DEBUG_FLAG==2||DEBUG_FLAG==3) qInfo() << "Comando serial criado: " << (uint16_t) comando; // DEBUG 1 2 3
+    uint8_t comando_4 = 0x00;
+    comando_4 |= (uint8_t) subsmp_ui << 4;
+
+    this->comandos[0] = new comando_serial(0x01, comando_4, comando_8);
+
+
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2||DEBUG_FLAG==3) qInfo() << "Comando serial criado: " << (uint16_t) comando[0]; // DEBUG 1 2 3
 }
 
 // Envia o comando e recebe os dados
