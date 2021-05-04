@@ -6,7 +6,6 @@
 
 // CONSTANTES
 #define N_PAR 3 // Numero de parametros monitorados
-#define PARAM_CNT 10 // Numero de varreduras para cada aquisicao de parametros
 
 // CONSTANTES SPI
 #define SPI_MOSI p5
@@ -58,6 +57,7 @@ char serial_str[3]; // Comando de controle serial
 uint16_t smp = 0; // Numero de amostras
 bool adc_completo = true; // Ciclo de amostragem e envio completo
 uint8_t read_cnt = 0; // Contagem para a leitura de parametros
+uint8_t param_cnt = 10; // Numero de varreduras para cada aquisicao de parametros
 uint32_t param[N_PAR]; // Vetor de parametros
 bool adc_param_pendente = false; // Controle do envio dos parametros
 uint16_t smp_enviadas; // Quantidade de amostras que serao enviadas
@@ -391,7 +391,7 @@ void dma_dac1_callback(void) {
         LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
         adc_completo = false;
         
-        if(read_cnt<PARAM_CNT){  
+        if(read_cnt<param_cnt){  
             read_cnt++;      
             LPC_ADC->ADCR  = (1UL << 21) | ((serial_fixed[1] >> 5) << 8) | (1UL << 0); // Enable, Clock, Canal 0
             dma.Prepare(conf_adc);        
@@ -430,7 +430,7 @@ void dma_dac2_callback(void) {
         LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
         adc_completo = false;
         
-        if(read_cnt<PARAM_CNT){  
+        if(read_cnt<param_cnt){  
             read_cnt++;      
             LPC_ADC->ADCR  = (1UL << 21) | ((serial_fixed[1] >> 5) << 8) | (1UL << 0); // Enable, Clock, Canal 0
             dma.Prepare(conf_adc);        

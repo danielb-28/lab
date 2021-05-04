@@ -1,7 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-
 #include <QMainWindow>
 #include <QSerialPort>
 #include <qserialportinfo.h>
@@ -13,7 +12,6 @@
 #include <boost/circular_buffer.hpp>
 
 #include <termios.h>
-
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

@@ -21,7 +21,7 @@ boost::asio::serial_port mcu(io); // Porta
 
 QTimer timer; // Timer para update
 
-uint16_t comando; // Comando serial // TEST
+uint16_t comando; // Comando serial
 
 uint16_t comando_pot; // Comando potenciometro serial // TEST
 
@@ -227,7 +227,7 @@ void MainWindow::write_dados(){
 }
 
 // Rotina para abrir a porta e configurar a baud rate
-void MainWindow::serial_open()
+void MainWindow::serial_open() // MOD
 {
 
     QString porta = ui->comboBox_porta->currentText(); // Get porta selecionada
@@ -257,13 +257,13 @@ void MainWindow::serial_config()
 
     x_max = ui->comboBox_amostras->currentText().toInt(); // Get tamanho do eixo horizontal - Desatualizado
 
-    // Criacao do comando serial - MOD - Reformular todo o processo de criacao do comando serial
+    // Criacao do comando serial - MOD
     comando = 0x01;
     comando |= (uint16_t) subsmp << 4;
     comando |= (uint16_t) amostras << 8;
     comando |= (uint16_t) dac_sinal << 11;
     comando |= (uint16_t) clock << 13;
-
+    //
 
     if(DEBUG_FLAG==1||DEBUG_FLAG==2||DEBUG_FLAG==3) qInfo() << "Comando serial criado: " << (uint16_t) comando; // DEBUG 1 2 3
 }
@@ -279,54 +279,34 @@ void MainWindow::serial_start(){
 
     std::string parametros; // String de parametros recebidos
 
-    // TEST - VALORES PARA O POTENCIOMETRO
-    //comando_t[2] = (uint8_t) std::floor((ui->doubleSpinBox_set1->value()/100) * 255); // Valor percentual
-    comando_t[2] = (uint8_t) ui->doubleSpinBox_set1->value(); // Valor 8 bits
-    //comando_t[3] = (uint8_t) std::floor((ui->doubleSpinBox_set2->value()/100) * 255); // Valor percentual
-    comando_t[3] = (uint8_t) ui->doubleSpinBox_set2->value(); // Valor 8 bits
-    //comando_t[4] = (uint8_t) std::floor((ui->doubleSpinBox_set3->value()/100) * 255); // Valor percentual
+    comando_t[2] = (uint8_t) ui->doubleSpinBox_set1->value(); // Valor pot1
+    comando_t[3] = (uint8_t) ui->doubleSpinBox_set2->value(); // Valor pot2
 
     boost::asio::write(mcu, boost::asio::buffer(&comando, 16)); // Comando para aquisição
 
-    // Potenciometros - TEST
     comando_pot = 0x02;
-
     comando_pot |= (uint16_t) comando_t[2] << 8;
-
     //qInfo() << "POT_1:" << (uint8_t) comando_t[2]; // DEBUG
-
-    boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 16));
+    boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 16)); // Comando pot1
 
     comando_pot = 0x03;
-
     comando_pot |= (uint16_t) comando_t[3] << 8;
-
     //qInfo() << "POT_0:" << (uint8_t) comando_t[3]; // DEBUG
-
-    boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 16));
-
-    //
+    boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 16)); // Comando pot2
 
     boost::asio::read(mcu, boost::asio::dynamic_buffer(s_label, 2)); // Label do pacote de dados
-
     i_label = (uint16_t)((s_label[0] << 8) + (s_label[1] & 0x00FF));
-
     s_label.clear(); // Necessario - PQ
-
     //qInfo() << "Label:" << i_label; // DEBUG
 
     if(i_label & 0x01){
-
         boost::asio::read(mcu, boost::asio::dynamic_buffer(parametros, 2*N_PAR));
-
         update_parametros(parametros);
-
     }
 
      x_max = (i_label >> 4);
 
      boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max));
-
      convert_dados(dados);
 }
 
@@ -383,12 +363,9 @@ void MainWindow::convert_dados(std::string dados)
         dado_conv = (uint16_t)((dados[index] << 8) + (dados[index+1] & 0x00FF));
 
         // Filtro
-        if(index>0)
-        {
-
+        if(index>0){
             dado_conv = dado_ant + alfa * (dado_conv - dado_ant);
-
-        }
+        } //
 
         if (primeira_exec){
             if(inverter==true){
@@ -421,16 +398,20 @@ void MainWindow::convert_dados(std::string dados)
 // Plot
 void MainWindow::plot(){
 
-    // Valores para os eixos
+    int graf_sel = this->ui->comboBox_graf_sel->currentIndex(); // Selecao do grafico
+
+    // Eixos - grafico sinal
     int y_min = 0;
     int y_max = 4096;
     int x_min = 1;
-    int graf_sel = this->ui->comboBox_graf_sel->currentIndex(); // TEST
+    //
 
-    double param_min = VREF+1; // TEST
-    double param_max = 0; // TEST
+    // Controle limites - Graficos parametros
+    double param_min = VREF+1;
+    double param_max = 0;
+    //
 
-    // Pens - TEST
+    // Pens
     QPen pen1;
     pen1.setColor(Qt::GlobalColor::blue);
 
@@ -441,88 +422,86 @@ void MainWindow::plot(){
     pen3.setColor(Qt::GlobalColor::red);
     //
 
-    if (primeira_exec){
+    // Configuracao do plot
+    ui->plot_widget->clearGraphs();
+    ui->plot_widget->addGraph();
+    ui->plot_widget->addGraph(); // Parametro2 - TEST
+    ui->plot_widget->addGraph(); // Parametro3 - TEST
 
-        // Configuracao do plot
-        ui->plot_widget->clearGraphs();
-        ui->plot_widget->addGraph();
-        ui->plot_widget->addGraph(); // Parametro2 - TEST
-        ui->plot_widget->addGraph(); // Parametro3 - TEST
+    // TEST - OTIMIZAR
+    switch(graf_sel){
+    case 0:
+        ui->checkBox_parametro1->hide();
+        ui->checkBox_parametro2->hide();
+        ui->checkBox_parametro3->hide();
+        ui->plot_widget->graph(0)->setData(this->x_data, this->y_data);
+        ui->plot_widget->xAxis->setRange(x_min, x_max);
+        ui->plot_widget->yAxis->setRange(y_min, y_max);
+        break;
 
-        // TEST - OTIMIZAR
-        switch(graf_sel){
-            case 0:
-                ui->checkBox_parametro1->hide();
-                ui->checkBox_parametro2->hide();
-                ui->checkBox_parametro3->hide();
-                ui->plot_widget->graph(0)->setData(this->x_data, this->y_data);
-                ui->plot_widget->xAxis->setRange(x_min, x_max);
-                ui->plot_widget->yAxis->setRange(y_min, y_max);
-            break;
+    case 1:
+        ui->checkBox_parametro1->show();
+        ui->checkBox_parametro2->show();
+        ui->checkBox_parametro3->show();
+        x_data_param.clear();
+        y_data_param1.clear();
+        y_data_param2.clear();
+        y_data_param3.clear();
+        param_min = VREF+1;
+        param_max = 0;
 
-            case 1:
-                ui->checkBox_parametro1->show();
-                ui->checkBox_parametro2->show();
-                ui->checkBox_parametro3->show();
-                x_data_param.clear();
-                y_data_param1.clear();
-                y_data_param2.clear();
-                y_data_param3.clear();
-                param_min = VREF+1;
-                param_max = 0;
+        // Criacao do vetor de indices
+        for(int i=0; i<(int)param1_buffer.size(); i++){
+            this->x_data_param.append(i); // TEST
+        }
 
-                // Criacao do vetor de indices
-                for(int i=0; i<(int)param1_buffer.size(); i++){
-                    this->x_data_param.append(i); // TEST
-                }
+        // Plot parametro1
+        if(this->ui->checkBox_parametro1->isChecked()){
 
-                // Plot parametro1
-                if(this->ui->checkBox_parametro1->isChecked()){
-
-                    for(int i=0; i<(int)param1_buffer.size(); i++){
-                        this->y_data_param1.append(param1_buffer[i]); // TEST
-                        if(this->y_data_param1[i] > param_max) param_max = y_data_param1[i];
-                        if(this->y_data_param1[i] < param_min) param_min = y_data_param1[i];
-                    }
-                    ui->plot_widget->graph(0)->setData(this->x_data_param, this->y_data_param1);
-                    ui->plot_widget->graph(0)->setPen(pen1);
-                }
-
-                // Plot parametro2
-                if(this->ui->checkBox_parametro2->isChecked()){
-
-                    for(int i=0; i<(int)param2_buffer.size(); i++){
-                        this->y_data_param2.append(param2_buffer[i]); // TEST
-                        if(this->y_data_param2[i] > param_max) param_max = y_data_param2[i];
-                        if(this->y_data_param2[i] < param_min) param_min = y_data_param2[i];
-                    }
-                    ui->plot_widget->graph(1)->setData(this->x_data_param, this->y_data_param2);
-                    ui->plot_widget->graph(1)->setPen(pen2);
-                }
-
-                // Plot parametro3
-                if(this->ui->checkBox_parametro3->isChecked()){
-
-                    for(int i=0; i<(int)param3_buffer.size(); i++){
-                        this->y_data_param3.append(param3_buffer[i]); // TEST
-                        if(this->y_data_param3[i] > param_max) param_max = y_data_param3[i];
-                        if(this->y_data_param3[i] < param_min) param_min = y_data_param3[i];
-                    }
-                    ui->plot_widget->graph(2)->setData(this->x_data_param, this->y_data_param3);
-                }
-
-                ui->plot_widget->xAxis->setRange(0, (int)param1_buffer.size()-1);
-                ui->plot_widget->yAxis->setRange(param_min-0.01, param_max+0.01);
-                ui->plot_widget->graph(2)->setPen(pen3);
-
-            break;
+            for(int i=0; i<(int)param1_buffer.size(); i++){
+                this->y_data_param1.append(param1_buffer[i]); // TEST
+                if(this->y_data_param1[i] > param_max) param_max = y_data_param1[i];
+                if(this->y_data_param1[i] < param_min) param_min = y_data_param1[i];
             }
-             //
+            ui->plot_widget->graph(0)->setData(this->x_data_param, this->y_data_param1);
+            ui->plot_widget->graph(0)->setPen(pen1);
+        }
 
-        // Configuracoes graficas
-        ui->plot_widget->graph(0)->setAntialiased(true);
-        ui->plot_widget->graph(0)->setAdaptiveSampling(true);
-        /*
+        // Plot parametro2
+        if(this->ui->checkBox_parametro2->isChecked()){
+
+            for(int i=0; i<(int)param2_buffer.size(); i++){
+                this->y_data_param2.append(param2_buffer[i]); // TEST
+                if(this->y_data_param2[i] > param_max) param_max = y_data_param2[i];
+                if(this->y_data_param2[i] < param_min) param_min = y_data_param2[i];
+            }
+            ui->plot_widget->graph(1)->setData(this->x_data_param, this->y_data_param2);
+            ui->plot_widget->graph(1)->setPen(pen2);
+        }
+
+        // Plot parametro3
+        if(this->ui->checkBox_parametro3->isChecked()){
+
+            for(int i=0; i<(int)param3_buffer.size(); i++){
+                this->y_data_param3.append(param3_buffer[i]); // TEST
+                if(this->y_data_param3[i] > param_max) param_max = y_data_param3[i];
+                if(this->y_data_param3[i] < param_min) param_min = y_data_param3[i];
+            }
+            ui->plot_widget->graph(2)->setData(this->x_data_param, this->y_data_param3);
+        }
+
+        ui->plot_widget->xAxis->setRange(0, (int)param1_buffer.size()-1);
+        ui->plot_widget->yAxis->setRange(param_min-0.01, param_max+0.01);
+        ui->plot_widget->graph(2)->setPen(pen3);
+
+        break;
+    }
+    //
+
+    // Configuracoes graficas
+    ui->plot_widget->graph(0)->setAntialiased(true);
+    ui->plot_widget->graph(0)->setAdaptiveSampling(true);
+    /*
         if(DEBUG_FLAG==1||DEBUG_FLAG==2)
         {
             qInfo() << "---Plot: ";
@@ -532,7 +511,6 @@ void MainWindow::plot(){
             qInfo() << "Y maximo: " << y_max;
         }
         */
-    }
 
     // Rotina de atualizacao do plot
     ui->plot_widget->replot();

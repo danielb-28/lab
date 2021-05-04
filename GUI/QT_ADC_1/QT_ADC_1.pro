@@ -4,7 +4,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 CONFIG += c++11
 
-QMAKE_CXXFLAGS += -Ofast
+QMAKE_CXXFLAGS += -O3 -Wall
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -13,11 +13,15 @@ QMAKE_CXXFLAGS += -Ofast
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    qcustomplot.cpp
+    qcustomplot.cpp \
+    #comando_serial.cpp \
+    #porta_serial.cpp
 
 HEADERS += \
     mainwindow.h \
-    qcustomplot.h
+    qcustomplot.h \
+    #comando_serial.h \
+    #porta_serial.h
 
 FORMS += \
     mainwindow.ui
@@ -34,10 +38,5 @@ INCLUDEPATH += "./boost_1_75_0"
 DEPENDPATH += "./boost_1_75_0"
 
 LIBS += -L"./boost_1_75_0/libs" \
-
-win32 {
-
-
-}
 
 DISTFILES +=

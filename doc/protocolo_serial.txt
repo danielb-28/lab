@@ -6,7 +6,7 @@
 
 	<clock_3bits>X <onda_dac_1bit><amostras_3bits> <subamostragem_4bits> 0001
 
-- Comando Potenciometro:]
+- Comando Potenciometro:
 
 	<valor_8bits> XXXX 0010 - Potenciometro 1
 	<valor_8bits> XXXX 0011 - Potenciometro 2
