@@ -6,6 +6,7 @@
 
 // CONSTANTES
 #define N_PAR 3 // Numero de parametros monitorados
+#define PARAM_CNT 10 // Numero de varreduras para cada aquisicao de parametros
 
 // CONSTANTES SPI
 #define SPI_MOSI p5
@@ -59,6 +60,7 @@ bool adc_completo = true; // Ciclo de amostragem e envio completo
 uint8_t read_cnt = 0; // Contagem para a leitura de parametros
 uint32_t param[N_PAR]; // Vetor de parametros
 bool adc_param_pendente = false; // Controle do envio dos parametros
+uint16_t smp_enviadas; // Quantidade de amostras que serao enviadas
 
 // FUNCOES
 void dma_adc_callback(void);
@@ -87,45 +89,33 @@ int main() {
     spi_setup(16, 0, 1000000); // bits, modo, freq
     
     // COMANDO INICIO
-    while(true){
-        // ARRUMAR
-        switch(serial_str[0] & 0x03)
-        {
-                        
-            case 0x01: // MUDAR
-                goto inicio;
-                        
-            default:
-                wait_us(0.000000000001);
-        }
-                
+    while(1){
+        if((serial_str[0] & 0x03) == 0x01) break;
+        wait_us(0.001);   
     }
     
-    inicio:
-    led2 = true; // LED - Inicio
+    serial_fixed[0] = (uint8_t) serial_str[0]; // Armazena a configuracao serial
+    serial_fixed[1] = (uint8_t) serial_str[1]; // Armazana a configuracao serial
     
-    serial_fixed[0] = (uint8_t) serial_str[0]; // TEST
-    serial_fixed[1] = (uint8_t) serial_str[1]; // TEST
+    led2 = true; // LED - Inicio
     
     dac_setup(serial_fixed[1]); // Configura o DAC
     
     adc_setup(serial_fixed[1]); // Configura o ADC
     
-    // VETOR DE AMOSTRAS
-    uint32_t v[smp]; // Armazena o ADDR inteiro
+    uint32_t v[smp]; // Vetor de amostras - armazena o ADDR inteiro
     
     dma_setup(v); // Configura o DMA 
     
     led1 = true; // LED - Amostragem sinal
+    
+    smp_enviadas = smp / ((uint16_t) ((serial_fixed[0] >> 4) & 0x0F) + 1); // Define a quantidade de amostras que serao enviadas
     
     // Inicia o DAC
     LPC_DAC->DACCTRL |= (3UL << 2); // Set DMA_ENA e CNT_ENA
     
     // Inicia o ADC
     LPC_ADC->ADCR |= (1UL << 16); // Ativa o ADC no modo burst
-    
-    
-    uint16_t smp_enviadas = smp / ((uint16_t) ((serial_fixed[0] >> 4) & 0x0F) + 1); // Quantidade de amostras que serao enviadas
         
     // Main loop
     while(1){
@@ -148,7 +138,7 @@ int main() {
                 serial_str[0] &= ~0x03; // Limpa o trigger serial
                 
                 // Envio do Label
-                label = (smp_enviadas << 4); 
+                label = (smp_enviadas << 4);
                 
                 if(adc_param_pendente) label |= 0x01;     
                 
@@ -401,7 +391,7 @@ void dma_dac1_callback(void) {
         LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
         adc_completo = false;
         
-        if(read_cnt<20){  
+        if(read_cnt<PARAM_CNT){  
             read_cnt++;      
             LPC_ADC->ADCR  = (1UL << 21) | ((serial_fixed[1] >> 5) << 8) | (1UL << 0); // Enable, Clock, Canal 0
             dma.Prepare(conf_adc);        
@@ -440,7 +430,7 @@ void dma_dac2_callback(void) {
         LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
         adc_completo = false;
         
-        if(read_cnt<20){  
+        if(read_cnt<PARAM_CNT){  
             read_cnt++;      
             LPC_ADC->ADCR  = (1UL << 21) | ((serial_fixed[1] >> 5) << 8) | (1UL << 0); // Enable, Clock, Canal 0
             dma.Prepare(conf_adc);        

@@ -1,4 +1,6 @@
 
+===== PINOS =====
+
 SPI
 	- MOSI	- p5 
 	- MISO	- p6
@@ -15,3 +17,5 @@ ADC
 
 DAC
 	- DAC_OUT 	- p18
+	
+==========

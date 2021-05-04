@@ -1,8 +1,11 @@
-- Flags de debug
-- Controle de posicao do grafico
 - Plotar graficos dos parametros
-- Alterar a flag de debug por argumento na linha de comando
+	- Arrumar uma forma de converter o boost::circular buffer para QVector
+- Flags de debug
+	- Alterar a flag de debug por argumento na linha de comando
+- Controle de posicao do grafico
 - Reformular comando serial
 - A variavel primeira_exec nao esta sendo setada para zero - o programa esta funcionando assim. Devo ter feito isso para o update do plot/replot funcionar. - Arrumar isso
 - Parece estar ocorrendo um vazamento de memoria. Ao iniciar o programa, as vezes os valores de configuracao antigos (antes de fechar o programa) sao lidos e recuperados
 - Filtro para outliers
+- Tornar os buffers circulares parametros da classe e nao variaveis globais
+- Verificar quais variaveis globais devem ser parametros da classe

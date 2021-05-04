@@ -33,24 +33,30 @@ private:
 
     QVector<double> x_data;
     QVector<double> y_data;
+    QVector<double> x_data_param; // TEST
+    QVector<double> y_data_param1; // TEST
+    QVector<double> y_data_param2; // TEST
+    QVector<double> y_data_param3; // TEST
 
-    void serial_open();
-    void serial_config();
-    void serial_close();
-    void serial_start();
-    void plot();
-    void convert_dados(std::string dados);
-    void update_parametros(std::string dados);
+    void serial_open(); // Abrir a porta e configurar a baud rate
+    void serial_config(); // Criar o comando serial
+    void serial_start(); // Envia o comando e recebe os dados
+    void convert_dados(std::string dados); // Conversao e processamento dos dados
+    void plot(); // Plot
+    void update_parametros(std::string dados); // Atualizacao dos parametros
     void write_parametros(); // TEST
     void write_dados(); // TEST
+    void serial_close(); // Fechar a porta serial
 
 private slots:
 
+    // Botoes
     void bt_inicio_click();
     void bt_parar_click();
     void bt_salvar_click();
 
-    void plot_update();
+    // Timers
+    void plot_update(); // Rotina de update - executada a cada timeout
 
 };
 #endif // MAINWINDOW_H
