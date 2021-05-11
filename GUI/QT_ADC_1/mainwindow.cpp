@@ -21,11 +21,7 @@ boost::asio::serial_port mcu(io); // Porta - MOD
 
 QTimer timer; // Timer para update
 
-uint16_t comando; // Comando serial - MOD
-
 uint16_t comando_pot; // Comando potenciometro serial - MOD
-
-char comando_t[5]; // MOD - MOD
 
 bool primeira_exec = true; // Controle do update - marcador de primeira execucao - DESATIVADO
 
@@ -68,6 +64,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->bt_inicio->setEnabled(true);
     ui->bt_parar->setEnabled(false);
     ui->bt_salvar->setEnabled(true); 
+
+    // Inicializacao Comandos Serial
+    this->comandos.push_back(comando_serial(0x01, 0x0, 0x00));
+    this->comandos.push_back(comando_serial(0x01, 0x0, 0x00));
+    this->comandos.push_back(comando_serial(0x01, 0x0, 0x00));
 
     // Serial Ports - listar
     Q_FOREACH(QSerialPortInfo porta_ava, QSerialPortInfo::availablePorts())
@@ -263,13 +264,14 @@ void MainWindow::serial_config() // MOD
     comando_8 |= (uint8_t) dac_sinal_ui << 3;
     comando_8 |= (uint8_t) clock_ui << 5;
 
+    qInfo() << comando_8; // DEBUG
+
     uint8_t comando_4 = 0x00;
     comando_4 |= (uint8_t) subsmp_ui << 4;
 
-    this->comandos[0] = new comando_serial(0x01, comando_4, comando_8);
+    this->comandos[0] = comando_serial(0x01, comando_4, comando_8);
 
-
-    if(DEBUG_FLAG==1||DEBUG_FLAG==2||DEBUG_FLAG==3) qInfo() << "Comando serial criado: " << (uint16_t) comando[0]; // DEBUG 1 2 3
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2||DEBUG_FLAG==3) qInfo() << "Comando serial criado:_" << (uint16_t) comandos[0].valor; // DEBUG 1 2 3
 }
 
 // Envia o comando e recebe os dados
@@ -283,20 +285,22 @@ void MainWindow::serial_start(){
 
     std::string parametros; // String de parametros recebidos
 
-    comando_t[2] = (uint8_t) ui->doubleSpinBox_set1->value(); // Valor pot1
-    comando_t[3] = (uint8_t) ui->doubleSpinBox_set2->value(); // Valor pot2
+    uint8_t v_pot[3]; // Valores dos pot na ui
 
-    boost::asio::write(mcu, boost::asio::buffer(&comando, 16)); // Comando para aquisição
+    // Configuracao
+    boost::asio::write(mcu, boost::asio::buffer(&comandos[0].valor, comandos[0].Tamanho_bits())); // Comando configuracao
 
-    comando_pot = 0x02;
-    comando_pot |= (uint16_t) comando_t[2] << 8;
-    //qInfo() << "POT_1:" << (uint8_t) comando_t[2]; // DEBUG
-    boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 16)); // Comando pot1
+    // Potenciometros
+    v_pot[0] = (uint8_t) ui->doubleSpinBox_set1->value(); // Valor pot1
+    v_pot[1] = (uint8_t) ui->doubleSpinBox_set2->value(); // Valor pot2
 
-    comando_pot = 0x03;
-    comando_pot |= (uint16_t) comando_t[3] << 8;
-    //qInfo() << "POT_0:" << (uint8_t) comando_t[3]; // DEBUG
-    boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 16)); // Comando pot2
+    // Pot_1
+    this->comandos[1] = comando_serial(0x02, 0x0, v_pot[0]);
+    boost::asio::write(mcu, boost::asio::buffer(&comandos[1].valor, comandos[1].Tamanho_bits())); // Comando pot1
+
+    // Pot_2
+    this->comandos[2] = comando_serial(0x03, 0x0, v_pot[1]);
+    boost::asio::write(mcu, boost::asio::buffer(&comandos[2].valor, comandos[2].Tamanho_bits())); // Comando pot2
 
     boost::asio::read(mcu, boost::asio::dynamic_buffer(s_label, 2)); // Label do pacote de dados
     i_label = (uint16_t)((s_label[0] << 8) + (s_label[1] & 0x00FF));

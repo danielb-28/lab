@@ -31,10 +31,10 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 CONFIG += static
 
-INCLUDEPATH += "./boost_1_75_0"
+INCLUDEPATH += "./boost/include"
 
-DEPENDPATH += "./boost_1_75_0"
+DEPENDPATH += "./boost"
 
-LIBS += -L"./boost_1_75_0/libs" \
+LIBS += -L"./boost/libs" \
 
 DISTFILES +=

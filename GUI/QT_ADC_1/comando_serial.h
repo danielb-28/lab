@@ -7,13 +7,12 @@ class comando_serial
 {
 public:
     comando_serial(uint8_t label_4, uint8_t data_4, uint8_t data_8);
-    uint16_t Valor();
     uint8_t Tamanho_bits();
     uint8_t Tamanho_bytes();
 
-private:
-
     uint16_t valor;
+
+private:
 
     uint8_t label;
     uint8_t data_4;

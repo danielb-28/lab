@@ -33,9 +33,6 @@ private:
 
     Ui::MainWindow *ui;
 
-    // Serial
-    std::vector<comando_serial> comandos[4];
-
     // Grafico sinal
     QVector<double> x_data; // MOD
     QVector<double> y_data; // MOD
@@ -47,6 +44,7 @@ private:
     QVector<double> y_data_param3; // MOD
 
     // Serial
+    std::vector<comando_serial> comandos;
     void serial_open(); // Abrir a porta e configurar a baud rate // MOD
     void serial_config(); // Criar o comando serial // MOD
     void serial_start(); // Envia o comando e recebe os dados // MOD

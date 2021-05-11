@@ -1,4 +1,4 @@
-GUI/QT_ADC_1/boost_1_75_0/
+GUI/QT_ADC_1/boost/
 GUI/build-QT_ADC_1-Desktop-Profile/ 
 GUI/*.o
 GUI/moc_*
