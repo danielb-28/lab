@@ -15,15 +15,15 @@
 
 #define VREF 3.298 // Tensao de referencia para o ADC
 
+#define MAX_SMP 3000 // TEST
+
+#define MAX_PAR 50 // TEST
+
 // Serial
 boost::asio::io_service io; // Contexto - MOD
 boost::asio::serial_port mcu(io); // Porta - MOD
 
 QTimer timer; // Timer para update
-
-uint16_t comando_pot; // Comando potenciometro serial - MOD
-
-bool primeira_exec = true; // Controle do update - marcador de primeira execucao - DESATIVADO
 
 int x_max = 0; // Valor maximo de amostras - MOD
 
@@ -46,19 +46,37 @@ MainWindow::MainWindow(QWidget *parent)
     this->setCentralWidget(ui->horizontalFrame); // Set widget central
 
     // Graficos
-    ui->plot_widget->addGraph(); // Sinal/parametro1
-    ui->plot_widget->addGraph(); // Parametro2 - TEST
-    ui->plot_widget->addGraph(); // Parametro3 - TEST
+    ui->plot_widget->addGraph(); // Sinal / parametro1
+    ui->plot_widget->addGraph(); // Parametro2
+    ui->plot_widget->addGraph(); // Parametro3
+
+    // Selecao Grafico - Check
+    ui->checkBox_parametro1->setChecked(true); // TEST
+    ui->checkBox_parametro2->setChecked(true); // TEST
+    ui->checkBox_parametro3->setChecked(true); // TEST
 
     // Selecao Grafico - Hide
     ui->checkBox_parametro1->hide(); // Selecao 1
     ui->checkBox_parametro2->hide(); // Selecao 2
     ui->checkBox_parametro3->hide(); // Selecao 3
 
+    // TEST
+    for(int i=1; i<=MAX_SMP; i++) this->x_data.append(i);
+    this->y_data.fill(0,MAX_SMP);
+
+    for(int i=1; i<=MAX_PAR; i++) this->x_data_param.append(i);
+    this->y_data_param1.fill(0, MAX_PAR);
+    this->y_data_param2.fill(0, MAX_PAR);
+    this->y_data_param3.fill(0, MAX_PAR);
+
+    //
+
     // Botoes - Connect
     connect(ui->bt_inicio, SIGNAL(released()), this, SLOT(bt_inicio_click()));
     connect(ui->bt_parar, SIGNAL(released()), this, SLOT(bt_parar_click()));
     connect(ui->bt_salvar, SIGNAL(released()), this, SLOT(bt_salvar_click()));
+    connect(ui->bt_lock1, SIGNAL(released()), this, SLOT(bt_lock1_click()));
+    connect(ui->bt_lock2, SIGNAL(released()), this, SLOT(bt_lock2_click()));
 
     // Botoes - Enable/Disable
     ui->bt_inicio->setEnabled(true);
@@ -66,9 +84,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->bt_salvar->setEnabled(true); 
 
     // Inicializacao Comandos Serial
-    this->comandos.push_back(comando_serial(0x01, 0x0, 0x00));
-    this->comandos.push_back(comando_serial(0x01, 0x0, 0x00));
-    this->comandos.push_back(comando_serial(0x01, 0x0, 0x00));
+    this->comandos.push_back(comando_serial(0x00, 0x0, 0x00)); // Config
+    this->comandos.push_back(comando_serial(0x00, 0x0, 0x00)); // Pot 1
+    this->comandos.push_back(comando_serial(0x00, 0x0, 0x00)); // Pot 2
+    this->comandos.push_back(comando_serial(0x00, 0x0, 0x00)); // Pot 3
+    this->comandos.push_back(comando_serial(0x00, 0x0, 0x00)); // Lock 1
+    this->comandos.push_back(comando_serial(0x00, 0x0, 0x00)); // Lock 2
 
     // Serial Ports - listar
     Q_FOREACH(QSerialPortInfo porta_ava, QSerialPortInfo::availablePorts())
@@ -89,7 +110,7 @@ void MainWindow::bt_inicio_click()
 
     // Timer update
     connect(&timer, SIGNAL(timeout()), this, SLOT(plot_update())); // MOD - passar para o construtor
-    timer.setInterval(0); // MOD - passar para o construtor
+    timer.setInterval(0.04); // MOD - passar para o construtor
 
     // Botoes - Enable/Disable
     ui->bt_inicio->setEnabled(false);
@@ -119,8 +140,6 @@ void MainWindow::bt_inicio_click()
 
     this->plot(); // Plota os dados
 
-    //primeira_exec = false; // MOD
-
     timer.start(); // Inicia o timer e a rotina de update
 
 }
@@ -149,7 +168,6 @@ void MainWindow::bt_parar_click()
 
     // Botoes - Enable/Disable
     ui->bt_inicio->setEnabled(true);
-
     ui->bt_parar->setEnabled(false);
     ui->bt_salvar->setEnabled(true);
 
@@ -249,29 +267,29 @@ void MainWindow::serial_open() // MOD
 // Rotina para criar o comando serial
 void MainWindow::serial_config() // MOD
 {
-
+    // Get valores selecionados - Clock, amostragem, forma de onda, subamostragem
     uint16_t clock_ui = ui->comboBox_clock->currentIndex(); // Get clock selecionado
     int amostras_ui = ui->comboBox_amostras->currentIndex(); // Get amostra selecionada
-    bool dac_sinal_ui = ui->comboBox_sinaldac->currentIndex(); // TEST
-    uint8_t subsmp_ui = (uint8_t) ui->comboBox_subamostragem->currentText().toInt() - 1; // TEST
+    bool dac_sinal_ui = ui->comboBox_sinaldac->currentIndex(); // Get forma de onda selecionada
+    uint8_t subsmp_ui = (uint8_t) ui->comboBox_subamostragem->currentText().toInt() - 1; // Get subamostragem selecionada
+    //
 
+    // Set valores selecionados
     ui->label_amostras->setText(ui->comboBox_amostras->currentText()); // Indica o numero de amostras
     ui->label_clock->setText(ui->comboBox_clock->currentText()); // Indica o clock
+    //
 
-    x_max = ui->comboBox_amostras->currentText().toInt(); // Get tamanho do eixo horizontal - Desatualizado
-
+    // Criacao comando configuracao
     uint8_t comando_8 = (uint8_t) amostras_ui;
     comando_8 |= (uint8_t) dac_sinal_ui << 3;
     comando_8 |= (uint8_t) clock_ui << 5;
 
-    qInfo() << comando_8; // DEBUG
-
-    uint8_t comando_4 = 0x00;
-    comando_4 |= (uint8_t) subsmp_ui << 4;
+    uint8_t comando_4 = (uint8_t) subsmp_ui;
 
     this->comandos[0] = comando_serial(0x01, comando_4, comando_8);
 
     if(DEBUG_FLAG==1||DEBUG_FLAG==2||DEBUG_FLAG==3) qInfo() << "Comando serial criado:_" << (uint16_t) comandos[0].valor; // DEBUG 1 2 3
+    //
 }
 
 // Envia o comando e recebe os dados
@@ -287,12 +305,12 @@ void MainWindow::serial_start(){
 
     uint8_t v_pot[3]; // Valores dos pot na ui
 
-    // Configuracao
+    // Envio comando configuracao
     boost::asio::write(mcu, boost::asio::buffer(&comandos[0].valor, comandos[0].Tamanho_bits())); // Comando configuracao
 
-    // Potenciometros
-    v_pot[0] = (uint8_t) ui->doubleSpinBox_set1->value(); // Valor pot1
-    v_pot[1] = (uint8_t) ui->doubleSpinBox_set2->value(); // Valor pot2
+    // Get valores selecionados - Potenciomentros
+    v_pot[0] = (uint8_t) ui->doubleSpinBox_set1->value(); // Get valor pot1 selecionado
+    v_pot[1] = (uint8_t) ui->doubleSpinBox_set2->value(); // Get valor pot2 selecionado
 
     // Pot_1
     this->comandos[1] = comando_serial(0x02, 0x0, v_pot[0]);
@@ -302,11 +320,12 @@ void MainWindow::serial_start(){
     this->comandos[2] = comando_serial(0x03, 0x0, v_pot[1]);
     boost::asio::write(mcu, boost::asio::buffer(&comandos[2].valor, comandos[2].Tamanho_bits())); // Comando pot2
 
+    // Recebimento do label
     boost::asio::read(mcu, boost::asio::dynamic_buffer(s_label, 2)); // Label do pacote de dados
     i_label = (uint16_t)((s_label[0] << 8) + (s_label[1] & 0x00FF));
     s_label.clear(); // Necessario - PQ
-    //qInfo() << "Label:" << i_label; // DEBUG
 
+    // Recebimento dos parametros
     if(i_label & 0x01){
         boost::asio::read(mcu, boost::asio::dynamic_buffer(parametros, 2*N_PAR));
         update_parametros(parametros);
@@ -314,6 +333,7 @@ void MainWindow::serial_start(){
 
      x_max = (i_label >> 4);
 
+     // Recebimento dos dados
      boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max));
      convert_dados(dados);
 }
@@ -360,12 +380,6 @@ void MainWindow::convert_dados(std::string dados)
     float alfa = this->ui->doubleSpinBox->value(); // TEST
     inverter = this->ui->checkBox->checkState(); // TEST
 
-    if (primeira_exec)
-    {
-        this->x_data.clear();
-        this->y_data.clear();
-    }
-
     for(int index=0; index<2*x_max; index+=2)
     {
         dado_conv = (uint16_t)((dados[index] << 8) + (dados[index+1] & 0x00FF));
@@ -375,27 +389,14 @@ void MainWindow::convert_dados(std::string dados)
             dado_conv = dado_ant + alfa * (dado_conv - dado_ant);
         } //
 
-        if (primeira_exec){
-            if(inverter==true){
-                this->y_data.append(4096 - (double) dado_conv);
-            }
-            else{
-                this->y_data.append((double) dado_conv);
-            }
-            this->x_data.append((double) index/2+1);
+        // TEST
+        if(inverter==true){
+            this->y_data.replace(index/2, 4096 - (double) dado_conv);
         }
-
-        else
-        {
-
-            if(inverter==true){
-                this->y_data.replace(index/2, 4096 - (double) dado_conv);
-            }
-            else{
-                this->y_data.replace(index/2, (double) dado_conv);
-            }
-            this->x_data.replace(index/2, (double) index/2+1);
-         }
+        else{
+            this->y_data.replace(index/2, (double) dado_conv);
+        }
+        //
 
         dado_ant = dado_conv;
 
@@ -451,23 +452,15 @@ void MainWindow::plot(){
         ui->checkBox_parametro1->show();
         ui->checkBox_parametro2->show();
         ui->checkBox_parametro3->show();
-        x_data_param.clear();
-        y_data_param1.clear();
-        y_data_param2.clear();
-        y_data_param3.clear();
+
         param_min = VREF+1;
         param_max = 0;
-
-        // Criacao do vetor de indices
-        for(int i=0; i<(int)param1_buffer.size(); i++){
-            this->x_data_param.append(i); // TEST
-        }
 
         // Plot parametro1
         if(this->ui->checkBox_parametro1->isChecked()){
 
             for(int i=0; i<(int)param1_buffer.size(); i++){
-                this->y_data_param1.append(param1_buffer[i]); // TEST
+                this->y_data_param1.replace(i, param1_buffer[i]); // TEST
                 if(this->y_data_param1[i] > param_max) param_max = y_data_param1[i];
                 if(this->y_data_param1[i] < param_min) param_min = y_data_param1[i];
             }
@@ -479,7 +472,7 @@ void MainWindow::plot(){
         if(this->ui->checkBox_parametro2->isChecked()){
 
             for(int i=0; i<(int)param2_buffer.size(); i++){
-                this->y_data_param2.append(param2_buffer[i]); // TEST
+                this->y_data_param2.replace(i, param2_buffer[i]); // TEST
                 if(this->y_data_param2[i] > param_max) param_max = y_data_param2[i];
                 if(this->y_data_param2[i] < param_min) param_min = y_data_param2[i];
             }
@@ -491,14 +484,14 @@ void MainWindow::plot(){
         if(this->ui->checkBox_parametro3->isChecked()){
 
             for(int i=0; i<(int)param3_buffer.size(); i++){
-                this->y_data_param3.append(param3_buffer[i]); // TEST
+                this->y_data_param3.replace(i, param3_buffer[i]); // TEST
                 if(this->y_data_param3[i] > param_max) param_max = y_data_param3[i];
                 if(this->y_data_param3[i] < param_min) param_min = y_data_param3[i];
             }
             ui->plot_widget->graph(2)->setData(this->x_data_param, this->y_data_param3);
         }
 
-        ui->plot_widget->xAxis->setRange(0, (int)param1_buffer.size()-1);
+        ui->plot_widget->xAxis->setRange(1, (int)param1_buffer.size());
         ui->plot_widget->yAxis->setRange(param_min-0.01, param_max+0.01);
         ui->plot_widget->graph(2)->setPen(pen3);
 
@@ -535,5 +528,32 @@ void MainWindow::serial_close(){
 
     mcu.close(); // Fecha a porta serial
     if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "Porta serial fechada"; // DEBUG 1 2
+
+}
+
+void MainWindow::bt_lock1_click(){
+
+    if(ui->bt_lock1->text() == "ON"){
+        ui->bt_lock1->setText("OFF");
+        this->comandos[4] = comando_serial(0x05, 0x0, 0x00);
+    }
+
+    else{
+        ui->bt_lock1->setText("ON");
+        this->comandos[4] = comando_serial(0x05, 0x1, 0x00);
+    }
+}
+
+void MainWindow::bt_lock2_click(){
+
+    if(ui->bt_lock2->text() == "ON"){
+        ui->bt_lock2->setText("OFF");
+        this->comandos[5] = comando_serial(0x06, 0x0, 0x00);
+    }
+
+    else{
+        ui->bt_lock2->setText("ON");
+        this->comandos[5] = comando_serial(0x06, 0x1, 0x00);
+    }
 
 }

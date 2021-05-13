@@ -34,14 +34,14 @@ private:
     Ui::MainWindow *ui;
 
     // Grafico sinal
-    QVector<double> x_data; // MOD
-    QVector<double> y_data; // MOD
+    QVector<double> x_data;
+    QVector<double> y_data;
 
     // Grafico parametros
-    QVector<double> x_data_param; // MOD
-    QVector<double> y_data_param1; // MOD
-    QVector<double> y_data_param2; // MOD
-    QVector<double> y_data_param3; // MOD
+    QVector<double> x_data_param;
+    QVector<double> y_data_param1;
+    QVector<double> y_data_param2;
+    QVector<double> y_data_param3;
 
     // Serial
     std::vector<comando_serial> comandos;
@@ -67,6 +67,8 @@ private slots:
     void bt_inicio_click();
     void bt_parar_click();
     void bt_salvar_click();
+    void bt_lock1_click();
+    void bt_lock2_click();
 
     // Timers
     void plot_update(); // Rotina de update - executada a cada timeout
