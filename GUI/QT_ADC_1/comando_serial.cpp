@@ -11,8 +11,8 @@ comando_serial::comando_serial(uint8_t label, uint8_t data_4, uint8_t data_8)
     this->tamanho_bytes = 2;
 
     this->valor = this->label;
-    this->valor |= (uint16_t) this->data_4 << 4;
-    this->valor |= (uint16_t) this->data_8 << 8;
+    this->valor |= ((uint16_t) this->data_4) << 4;
+    this->valor |= ((uint16_t) this->data_8) << 8;
 
 }
 

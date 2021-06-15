@@ -14,6 +14,7 @@
 #include <termios.h>
 
 #include <comando_serial.h>
+#include <porta_serial.h>
 
 #include <vector>
 
@@ -33,6 +34,9 @@ private:
 
     Ui::MainWindow *ui;
 
+    // Timers
+    QTimer *timer;
+
     // Grafico sinal
     QVector<double> x_data;
     QVector<double> y_data;
@@ -44,7 +48,11 @@ private:
     QVector<double> y_data_param3;
 
     // Serial
+    boost::asio::io_service io;
+    //boost::asio::serial_port *mcu;
     std::vector<comando_serial> comandos;
+    porta_serial mcu;
+
     void serial_open(); // Abrir a porta e configurar a baud rate // MOD
     void serial_config(); // Criar o comando serial // MOD
     void serial_start(); // Envia o comando e recebe os dados // MOD
@@ -55,6 +63,8 @@ private:
     void update_parametros(std::string dados); // Parametros
 
     // Grafico
+    int x_max; // Valor maximo de amostras
+    bool inverter;
     void plot(); // Plot
 
     // IO
