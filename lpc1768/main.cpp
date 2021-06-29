@@ -2,7 +2,6 @@
 #include <LPC17xx.h>
 #include "MODDMA.h"
 #include "MODSERIAL.h" 
-#include <string>
 
 // CONSTANTES
 #define N_PAR 3 // Numero de parametros monitorados
@@ -19,6 +18,10 @@
 // CONSTANTES DAC
 #define PPC 1024 // Pontos por ciclo
 #define BIAS 1 // Power Mode
+
+// LOCKs
+DigitalOut lock1(p29);
+DigitalOut lock2(p30);
 
 // LEDs
 DigitalOut led1(LED1); // Amostragem sinal
@@ -83,10 +86,14 @@ int main() {
     // CONFIGURACAO SERIAL
     pc.baud(460800);
     pc.attach(&serialrx_callback, MODSERIAL::RxIrq);
-    pc.rxBufferSetSize(2); // bytes
+    pc.rxBufferSetSize(8); // bytes
     
     // CONFIGURACAO SPI
-    spi_setup(16, 0, 1000000); // bits, modo, freq
+    spi_setup(16, 0, 1000000); // bits, modo, freq // TEST
+    
+    // CONFIGURACAO LOCKS
+    lock1 = false;
+    lock2 = false;
     
     // COMANDO INICIO
     while(1){
@@ -120,17 +127,43 @@ int main() {
     // Main loop
     while(1){
             
+            wait_us(100);
+            
             // Atualizacao Potenciometros
-            if((serial_str[0]&0x0F) == 0x02){
+            /*
+            if((((uint8_t)serial_str[0])&0x0F) == 0x02){
+                led4 = true;
                 spi_val[0] = (uint8_t) serial_str[1];
-                memset(serial_str, 0, 3*sizeof(serial_str[0])); // TEST
-            }
-        
-            if((serial_str[0]&0x0F) == 0x03){
-                spi_val[1] = (uint8_t) serial_str[1];
-                memset(serial_str, 0, 3*sizeof(serial_str[0])); // TEST
+                //memset(serial_str, 0, 3*sizeof(serial_str[0])); // TEST
             }
             
+            wait_us(1);
+            
+            if((((uint8_t)serial_str[0])&0x0F) == 0x03){
+                led4 = true;
+                spi_val[1] = (uint8_t) serial_str[1];
+                //memset(serial_str, 0, 3*sizeof(serial_str[0])); // TEST
+            }
+            
+            wait_us(1);
+            /*
+            /*
+            if((((uint8_t)serial_str[0])&0x0F) == 0x04){
+                led4 = true;
+                lock1 = (bool) (serial_str[1]&0x01);
+                //memset(serial_str, 0, 3*sizeof(serial_str[0])); // TEST
+            }
+            
+            wait_us(1);
+            
+            if((((uint8_t)serial_str[0])&0x0F) == 0x05){
+                led4 = false;
+                lock2 = (bool) (serial_str[1]&0x01);
+                //memset(serial_str, 0, 3*sizeof(serial_str[0])); // TEST
+            }
+            
+            wait_us(10);
+            */
             // Envio dos dados
             if (dma_completo) {
                 
@@ -170,15 +203,19 @@ int main() {
                 }
                 
                 // Trigger Serial
+                /*
                 while(1){
                     if((serial_str[0] & 0x03) != 0x00) break; // Modificar a forma como o trigger serial é feito
                     wait_us(0.001);   
                 }
+                */
                 
                 // Atualizacao dos potenciomentros
-                spi_pot(0, spi_val[0]); // pot 1
-                spi_pot(1, spi_val[1]); // pot 2
+                
                 // adicionar pot3
+                
+                
+                //wait_ms(10); //TEST
                 
                 adc_completo = true;
             }
@@ -408,7 +445,7 @@ void dma_dac1_callback(void) {
     }
     
     //if (dma.irqType() == MODDMA::TcIrq) dma.clearTcIrq();
-        
+    
     // Troca para o buffer[1]
     dma.Prepare(conf_dac2); // ALTERAR
 
@@ -446,6 +483,7 @@ void dma_dac2_callback(void) {
  
     }   
     // Troca para o buffer[0] 
+    
     dma.Prepare(conf_dac1); // ALTERAR
     
     //if (dma.irqType() == MODDMA::TcIrq) dma.clearTcIrq(); 
@@ -502,6 +540,64 @@ void spi_pot(uint8_t id, uint8_t value){
 
 // CALBACK SERIAL RX
 void serialrx_callback(MODSERIAL_IRQ_INFO *q){
-    if (pc.rxBufferFull()) pc.move(serial_str, 2);
+    if (pc.rxBufferGetCount()>=2){
+        serial_str[0] = pc.getc();
+        serial_str[1] = pc.getcNb();
+        
+        switch((((uint8_t)serial_str[0])&0x0F)){
+        
+            case 0x02:
+                spi_val[0] = (uint8_t) serial_str[1];
+                spi_pot(0, spi_val[0]); // pot 1
+                break;
+            
+            case 0x03:
+                spi_val[1] = (uint8_t) serial_str[1];
+                spi_pot(1, spi_val[1]); // pot 2
+                break;
+            
+            case 0x04:
+                lock1 = (bool) (((uint8_t) serial_str[1])&0x01);
+                break;
+            
+            case 0x05:
+                lock2 = (bool) (((uint8_t) serial_str[1])&0x01);
+                break;    
+            
+        }
+        /*
+        if((((uint8_t)serial_str[0])&0x0F) == 0x02){
+                spi_val[0] = (uint8_t) serial_str[1];
+                spi_pot(0, spi_val[0]); // pot 1
+                return;
+                //memset(serial_str, 0, 3*sizeof(serial_str[0])); // TEST
+            }
+            
+            //wait_us(1);
+            
+            if((((uint8_t)serial_str[0])&0x0F) == 0x03){
+                spi_val[1] = (uint8_t) serial_str[1];
+                spi_pot(1, spi_val[1]); // pot 2
+                return;
+                //memset(serial_str, 0, 3*sizeof(serial_str[0])); // TEST
+            }
+            
+            if((((uint8_t)serial_str[0])&0x0F) == 0x04){
+                led4 = !led4;
+                lock1 = (bool) (((uint8_t) serial_str[1])&0x01);
+                return;
+                //memset(serial_str, 0, 3*sizeof(serial_str[0])); // TEST
+            }
+            
+            if((((uint8_t)serial_str[0])&0x0F) == 0x05){
+                lock2 = (bool) (((uint8_t) serial_str[1])&0x01);
+                return;
+                //memset(serial_str, 0, 3*sizeof(serial_str[0])); // TEST
+            }
+            */
+        
+    }
+        
     return;
 } 
+

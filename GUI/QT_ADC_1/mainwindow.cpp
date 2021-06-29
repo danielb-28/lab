@@ -13,7 +13,7 @@
 
 #define FPS 1 // Ativa a contagem de FPS
 
-#define VREF 3.298 // Tensao de referencia para o ADC
+#define VREF 3.3 // Tensao de referencia para o ADC
 
 // Serial
 boost::asio::io_service io; // Contexto
@@ -29,7 +29,7 @@ char comando_t[5]; // MOD
 
 bool primeira_exec = true; // Controle do update - marcador de primeira execucao
 
-bool pex; // TEST
+bool pex; // TEST - Outro marcador de primeira execucao
 
 int x_max = 0; // Valor maximo de amostras
 
@@ -287,7 +287,7 @@ void MainWindow::serial_start(){
 
     std::string parametros; // String de parametros recebidos
 
-    // TEST - VALORES PARA O POTENCIOMETRO
+    // Set valores - TEST
     //comando_t[2] = (uint8_t) std::floor((ui->doubleSpinBox_set1->value()/100) * 255); // Valor percentual
     comando_t[2] = (uint8_t) ui->doubleSpinBox_set1->value(); // Valor 8 bits
     //comando_t[3] = (uint8_t) std::floor((ui->doubleSpinBox_set2->value()/100) * 255); // Valor percentual
@@ -321,36 +321,27 @@ void MainWindow::serial_start(){
 
      comando_pot |= (uint16_t) comando_t[2] << 8;
 
-     //qInfo() << "POT_1:" << (uint8_t) comando_t[2]; // DEBUG
-
      boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 16));
 
      comando_pot = 0x03;
 
      comando_pot |= (uint16_t) comando_t[3] << 8;
 
-     //qInfo() << "POT_0:" << (uint8_t) comando_t[3]; // DEBUG
-
      boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 16));
 
      //
 
 
-     // TEST
+     // Locks - TEST
      uint16_t set1, set2;
      set1 = 0x0004;
-     set1 |= (uint16_t) (this->ui->checkBox_3->isChecked() << 8);
-
-     //qInfo()<<this->ui->checkBox_3->isChecked();
-
-     //set1 |= (uint16_t) (true << 8); // TEST
+     set1 |= (uint16_t) (this->ui->checkBox_lock1->isChecked() << 8);
 
      set2 = 0x0005;
-     set2 |= (uint16_t) (this->ui->checkBox_4->isChecked() << 8);
-     //set2 |= (uint16_t) (true << 8); // TEST
+     set2 |= (uint16_t) (this->ui->checkBox_lock2->isChecked() << 8);
 
-     boost::asio::write(mcu, boost::asio::buffer(&set1, 16)); // TEST
-     boost::asio::write(mcu, boost::asio::buffer(&set2, 16)); // TEST
+     boost::asio::write(mcu, boost::asio::buffer(&set1, 16));
+     boost::asio::write(mcu, boost::asio::buffer(&set2, 16));
      //
 
      convert_dados(dados);
