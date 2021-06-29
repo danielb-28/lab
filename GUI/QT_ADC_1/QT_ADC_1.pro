@@ -4,6 +4,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 CONFIG += c++11
 
+QMAKE_CXXFLAGS += -Ofast
+
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 # DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
@@ -11,15 +13,11 @@ CONFIG += c++11
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    qcustomplot.cpp \
-    comando_serial.cpp\
-    porta_serial.cpp
+    qcustomplot.cpp
 
 HEADERS += \
     mainwindow.h \
-    qcustomplot.h \
-    porta_serial.h \
-    comando_serial.h
+    qcustomplot.h
 
 FORMS += \
     mainwindow.ui
@@ -31,10 +29,15 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 CONFIG += static
 
-INCLUDEPATH += "./boost/include"
+INCLUDEPATH += "./boost_1_75_0"
 
-DEPENDPATH += "./boost"
+DEPENDPATH += "./boost_1_75_0"
 
-LIBS += -L"./boost/libs" \
+LIBS += -L"./boost_1_75_0/libs" \
+
+win32 {
+
+
+}
 
 DISTFILES +=

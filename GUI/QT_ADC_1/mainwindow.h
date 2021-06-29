@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+
 #include <QMainWindow>
 #include <QSerialPort>
 #include <qserialportinfo.h>
@@ -13,10 +14,6 @@
 
 #include <termios.h>
 
-#include <comando_serial.h>
-#include <porta_serial.h>
-
-#include <vector>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -34,42 +31,22 @@ private:
 
     Ui::MainWindow *ui;
 
-    // Timers
-    QTimer *timer;
-
-    // Grafico sinal
     QVector<double> x_data;
     QVector<double> y_data;
+    QVector<double> x_data_param; // TEST
+    QVector<double> y_data_param1; // TEST
+    QVector<double> y_data_param2; // TEST
+    QVector<double> y_data_param3; // TEST
 
-    // Grafico parametros
-    QVector<double> x_data_param;
-    QVector<double> y_data_param1;
-    QVector<double> y_data_param2;
-    QVector<double> y_data_param3;
-
-    // Serial
-    boost::asio::io_service io;
-    //boost::asio::serial_port *mcu;
-    std::vector<comando_serial> comandos;
-    porta_serial mcu;
-
-    void serial_open(); // Abrir a porta e configurar a baud rate // MOD
-    void serial_config(); // Criar o comando serial // MOD
-    void serial_start(); // Envia o comando e recebe os dados // MOD
-    void serial_close(); // Fechar a porta serial // MOD
-
-    // Processamento
-    void convert_dados(std::string dados); // Sinal
-    void update_parametros(std::string dados); // Parametros
-
-    // Grafico
-    int x_max; // Valor maximo de amostras
-    bool inverter;
+    void serial_open(); // Abrir a porta e configurar a baud rate
+    void serial_config(); // Criar o comando serial
+    void serial_start(); // Envia o comando e recebe os dados
+    void convert_dados(std::string dados); // Conversao e processamento dos dados
     void plot(); // Plot
-
-    // IO
+    void update_parametros(std::string dados); // Atualizacao dos parametros
     void write_parametros(); // TEST
     void write_dados(); // TEST
+    void serial_close(); // Fechar a porta serial
 
 private slots:
 
@@ -77,8 +54,6 @@ private slots:
     void bt_inicio_click();
     void bt_parar_click();
     void bt_salvar_click();
-    void bt_lock1_click();
-    void bt_lock2_click();
 
     // Timers
     void plot_update(); // Rotina de update - executada a cada timeout
