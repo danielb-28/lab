@@ -2,20 +2,18 @@ import pandas as pd
 import numpy as np 
 from matplotlib import pyplot as plt 
 
-y = pd.read_csv("../build-QT_ADC_1-Desktop-Profile/parametros.txt")
+y = pd.read_csv("/tmp/parametros.txt")
 
-plt.scatter(y.index, y.iloc[:,0], marker='.')
-plt.plot(y.index, y.iloc[:,0])
-plt.scatter(y.index, y.iloc[:,1], marker='.')
-plt.plot(y.index, y.iloc[:,1])
-plt.scatter(y.index, y.iloc[:,2], marker='.')
-plt.plot(y.index, y.iloc[:,2])
+plt.figure()
+plt.plot(y.index, y.iloc[:,0], marker='.')
+plt.plot(y.index, y.iloc[:,1], marker='.')
+plt.plot(y.index, y.iloc[:,2], marker='.')
 plt.grid()
 #plt.ylim(0,4096)
-plt.show()
+plt.show(block=False)
 
-y = pd.read_csv("../build-QT_ADC_1-Desktop-Profile/plot.txt")
-plt.scatter(y.index, y.iloc[:,0], marker='.')
-plt.plot(y.index, y.iloc[:,0])
+plt.figure()
+y = pd.read_csv("/tmp/plot.txt")
+plt.plot(y.index, y.iloc[:,0], marker='.', color='red')
 plt.grid()
 plt.show()
