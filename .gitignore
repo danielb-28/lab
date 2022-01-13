@@ -16,3 +16,5 @@ misc/mcp41010_test/.*
 /misc/mcp41010_test/*.bld
 /misc/mcp41010_test/*.h
 /misc/mcp41010_test/mbed/
+gschem-sym/*
+gui_dep/*

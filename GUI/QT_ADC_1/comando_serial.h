@@ -2,24 +2,18 @@
 #define COMANDO_SERIAL_H
 
 #include<stdint.h>
+#include<array>
 
 class comando_serial
 {
 public:
-    comando_serial(uint8_t label_4, uint8_t data_4, uint8_t data_8);
-    uint8_t Tamanho_bits();
-    uint8_t Tamanho_bytes();
 
-    uint16_t valor;
+    comando_serial(uint16_t label);
+
+    uint16_t label; // Label de 11 bits
+    std::array<uint8_t, 8> dados; // Dados de 8 bytes
 
 private:
-
-    uint8_t label;
-    uint8_t data_4;
-    uint8_t data_8;
-
-    uint8_t tamanho_bits;
-    uint8_t tamanho_bytes;
 
 };
 

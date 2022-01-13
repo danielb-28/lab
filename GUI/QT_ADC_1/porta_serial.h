@@ -1,3 +1,4 @@
+/*
 #include <comando_serial.h>
 #include <boost/asio.hpp>
 #include <boost/asio/serial_port.hpp>
@@ -32,3 +33,4 @@ private:
 };
 
 #endif // PORTA_SERIAL_H
+*/

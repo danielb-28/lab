@@ -3,6 +3,8 @@
 
 #include <QDebug>
 
+#include "comando_serial.h" // TEST
+
 // Constantes
 const QString temp_path = "/tmp/";
 
@@ -22,15 +24,15 @@ boost::asio::serial_port mcu(io); // Porta
 
 QTimer timer; // Timer para update
 
-uint16_t comando; // Comando serial // TEST
+uint16_t comando; // Comando serial // MOD
 
 // Globais
 
-bool pex; // TEST - Outro marcador de primeira execucao
+bool pex; // Flag de primeira execucao
 
 int x_max = 0; // Valor maximo de amostras
 
-bool inverter = false; // Inverter plot - N PRECISA SER GLOBAL
+bool inverter = false; // Inverter plot // MOD - N PRECISA SER GLOBAL
 
 // Buffers circulares para os parametros
 boost::circular_buffer<double> param1_buffer(50);
@@ -38,8 +40,8 @@ boost::circular_buffer<double> param2_buffer(50);
 boost::circular_buffer<double> param3_buffer(50);
 
 // Tempo para monitorar o fps
-auto t1 = std::chrono::steady_clock::now();
-auto t2 = std::chrono::steady_clock::now();
+auto t1 = std::chrono::steady_clock::now(); // MOD - Tornar atributo
+auto t2 = std::chrono::steady_clock::now(); // MOD - Tornar atributo
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -87,7 +89,7 @@ MainWindow::~MainWindow()
 void MainWindow::bt_inicio_click()
 {
 
-    pex = true; // Indicador de primeira execucao
+    pex = true; // Flag de primeira execucao
 
     // Timer update
     connect(&timer, SIGNAL(timeout()), this, SLOT(plot_update()));
@@ -123,7 +125,7 @@ void MainWindow::bt_inicio_click()
 
     this->plot(); // Plota os dados
 
-    pex=false; // Indicador de primeira execucao
+    pex=false; // Flag de primeira execucao
 
     timer.start(); // Inicia o timer e a rotina de update
 
@@ -306,7 +308,11 @@ void MainWindow::serial_start(){
     comando_t[3] = (uint8_t) ui->doubleSpinBox_set2->value(); // Valor 8 bits
 
     // Aquisicao
-    if(pex) boost::asio::write(mcu, boost::asio::buffer(&comando, 16)); // Comando para aquisição
+    if(pex){
+
+        boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
+        boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
+    }
 
     boost::asio::read(mcu, boost::asio::dynamic_buffer(s_label, 2)); // Label do pacote de dados
 
@@ -322,22 +328,25 @@ void MainWindow::serial_start(){
 
     }
 
-     x_max = (i_label >> 4); // Numero de amostras que serao recebidas
+    x_max = (i_label >> 4); // Numero de amostras que serao recebidas
 
-     boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max)); // Recebimento das amostras
+    boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max)); // Recebimento das amostras
+
 
      // Potenciometros
      comando_t[0] = 0x02; // Label pot1
 
      comando_pot = comando_t[0] | (uint16_t) comando_t[1] << 8; // Comando pot1
 
-     boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 16)); // Envio comando pot1
+     boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot1
+     boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot1
 
      comando_t[2] = 0x03; // label pot2
 
      comando_pot = comando_t[2] | (uint16_t) comando_t[3] << 8; // Comando pot2
 
-     boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 16)); // Envio comando pot2
+     boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot2
+     boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot2
 
 
      // Locks
@@ -349,8 +358,11 @@ void MainWindow::serial_start(){
      lock2 = 0x0005; // Label lock2
      lock2 |= (uint16_t) (this->ui->checkBox_lock2->isChecked() << 8); // Valor lock2
 
-     boost::asio::write(mcu, boost::asio::buffer(&lock1, 16)); // Envio lock1
-     boost::asio::write(mcu, boost::asio::buffer(&lock2, 16)); // Envio lock2
+     boost::asio::write(mcu, boost::asio::buffer(&lock1, 2)); // Envio lock1
+     boost::asio::write(mcu, boost::asio::buffer(&lock1, 2)); // Envio lock1
+
+     boost::asio::write(mcu, boost::asio::buffer(&lock2, 2)); // Envio lock2
+     boost::asio::write(mcu, boost::asio::buffer(&lock2, 2)); // Envio lock2
      //
 
      convert_dados(dados); // Conversao dos dados

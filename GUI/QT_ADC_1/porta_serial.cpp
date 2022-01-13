@@ -1,3 +1,4 @@
+/*
 #include "porta_serial.h"
 
 porta_serial::porta_serial()
@@ -37,5 +38,4 @@ void porta_serial::serial_close()
     this->porta->send_break();
     this->porta->close();
 }
-
-
+*/

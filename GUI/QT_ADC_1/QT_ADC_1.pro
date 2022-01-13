@@ -13,11 +13,15 @@ QMAKE_CXXFLAGS += -Ofast
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    qcustomplot.cpp
+    qcustomplot.cpp \
+    comando_serial.cpp \
+    porta_serial.cpp
 
 HEADERS += \
     mainwindow.h \
-    qcustomplot.h
+    qcustomplot.h \
+    comando_serial.h \
+    porta_serial.h
 
 FORMS += \
     mainwindow.ui
@@ -29,15 +33,10 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 CONFIG += static
 
-INCLUDEPATH += "./boost_1_75_0"
+#INCLUDEPATH += "./boost_1_75_0"
 
-DEPENDPATH += "./boost_1_75_0"
+#DEPENDPATH += "./boost_1_75_0"
 
-LIBS += -L"./boost_1_75_0/libs" \
-
-win32 {
-
-
-}
-
+#LIBS += -L"./boost_1_75_0/libs" \
+LIBS += -L/usr/lib/x86_64-linux-gnu -lboost_system
 DISTFILES +=
