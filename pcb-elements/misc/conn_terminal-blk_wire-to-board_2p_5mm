@@ -1,0 +1,16 @@
+
+Element["" "" "conn_terminal-blk_wire-to-board_2p_5mm" "" 81.1000mm 63.2000mm 0.0000 0.0000 0 100 ""]
+(
+	Pin[5.3940mm -7.3480mm 166.00mil 20.00mil 172.00mil 85.00mil "1" "1" "square"]
+	Pin[0.3940mm -7.3480mm 166.00mil 20.00mil 172.00mil 85.00mil "2" "2" ""]
+	ElementLine [8.3940mm -11.3480mm 7.3940mm -12.3480mm 20.00mil]
+	ElementLine [8.3940mm -11.3480mm 8.3940mm -1.3480mm 20.00mil]
+	ElementLine [-2.5785mm -11.3480mm -1.5785mm -12.3480mm 20.00mil]
+	ElementLine [-2.6000mm -11.3000mm -2.6000mm -1.4000mm 20.00mil]
+	ElementLine [-2.6000mm -1.3000mm 8.3460mm -1.3000mm 0.4540mm]
+	ElementLine [8.3460mm -1.3000mm 8.3940mm -1.3480mm 10.00mil]
+	ElementLine [-1.5000mm -12.4000mm 7.3419mm -12.4000mm 0.4540mm]
+	ElementLine [7.3419mm -12.4000mm 7.3710mm -12.3710mm 10.00mil]
+	ElementLine [-2.6000mm -2.7000mm 8.3940mm -2.7060mm 0.4540mm]
+
+	)

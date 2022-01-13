@@ -1,0 +1,23 @@
+
+Element["" "" "coil_1tap_80_60" "" 17.6000mm 82.1000mm 0.0000 0.0000 0 100 ""]
+(
+	Pin[6.8000mm -4.2000mm 2.3780mm 30.00mil 2.3780mm 28.00mil "" "2" "edge2"]
+	Pin[-1.2000mm -4.2000mm 2.3780mm 30.00mil 2.3780mm 28.00mil "" "1" "edge2"]
+	Pin[2.8000mm -1.7000mm 2.3780mm 30.00mil 2.3780mm 28.00mil "" "3" "edge2"]
+	ElementLine [6.8000mm -4.2000mm 5.2000mm -4.2000mm 0.3000mm]
+	ElementLine [-1.2000mm -4.2000mm 0.4000mm -4.2000mm 0.3000mm]
+	ElementLine [-1.9000mm -7.2000mm 7.5000mm -7.2000mm 0.3000mm]
+	ElementLine [-1.9000mm -7.2000mm -1.9000mm -1.2000mm 0.3000mm]
+	ElementLine [-1.9000mm -1.2000mm 7.5000mm -1.2000mm 0.3000mm]
+	ElementLine [7.5000mm -7.2000mm 7.5000mm -1.2000mm 0.3000mm]
+	ElementLine [2.8000mm -4.3000mm 2.8000mm -1.7000mm 0.3000mm]
+	ElementArc [4.6000mm -4.3000mm 0.6000mm 0.6000mm 180.000000 90.000000 0.3000mm]
+	ElementArc [4.6000mm -4.3000mm 0.6000mm 0.6000mm 270.000000 90.000000 0.3000mm]
+	ElementArc [3.4000mm -4.3000mm 0.6000mm 0.6000mm 180.000000 90.000000 0.3000mm]
+	ElementArc [3.4000mm -4.3000mm 0.6000mm 0.6000mm 270.000000 90.000000 0.3000mm]
+	ElementArc [2.2000mm -4.3000mm 0.6000mm 0.6000mm 180.000000 90.000000 0.3000mm]
+	ElementArc [2.2000mm -4.3000mm 0.6000mm 0.6000mm 270.000000 90.000000 0.3000mm]
+	ElementArc [1.0000mm -4.3000mm 0.6000mm 0.6000mm 180.000000 90.000000 0.3000mm]
+	ElementArc [1.0000mm -4.3000mm 0.6000mm 0.6000mm 270.000000 90.000000 0.3000mm]
+
+	)

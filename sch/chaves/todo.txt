@@ -1,0 +1,3 @@
+- Adicionar capacitores eletroliticos de filtro (vdd e vss)
+- Adicionar filtro pi para linha de VL
+- Refazer placa

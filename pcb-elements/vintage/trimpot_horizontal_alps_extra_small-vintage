@@ -1,0 +1,13 @@
+
+Element["" "" "trimpot_horizontal_alps_extra_small-vintage" "" 53.4000mm 106.4000mm 0.0000 0.0000 0 100 ""]
+(
+	Pin[4.7380mm -5.8960mm 2.6320mm 30.00mil 2.7844mm 35.00mil "" "2" ""]
+	Pin[-0.5620mm -8.2960mm 2.6320mm 30.00mil 2.7844mm 35.00mil "" "1" ""]
+	Pin[-0.5620mm -3.4960mm 2.6320mm 30.00mil 2.7844mm 35.00mil "" "3" ""]
+	ElementLine [-2.3000mm -9.0120mm -2.3000mm -3.0120mm 0.3080mm]
+	ElementArc [1.8500mm -6.0120mm 5.0000mm 5.0000mm 180.000000 90.000000 0.4000mm]
+	ElementArc [1.8500mm -5.7620mm 5.0000mm 5.0000mm 90.000000 90.000000 0.4000mm]
+	ElementArc [1.6000mm -6.0120mm 5.0000mm 5.0000mm 270.000000 90.000000 0.4000mm]
+	ElementArc [1.6000mm -5.7620mm 5.0000mm 5.0000mm 0.000000 90.000000 0.4000mm]
+
+	)

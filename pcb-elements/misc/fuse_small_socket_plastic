@@ -1,0 +1,17 @@
+
+Element["" "" "fuse_small_socket_plastic" "" 92.1000mm 55.2000mm 0.0000 0.0000 0 100 ""]
+(
+	Pin[-1.4580mm -6.8940mm 4.5750mm 20.00mil 4.7274mm 48.00mil "1" "1" "edge2"]
+	Pin[20.5420mm -6.8940mm 4.7020mm 20.00mil 4.8544mm 48.00mil "2" "2" "edge2"]
+	ElementLine [-3.4580mm -11.8940mm -3.4580mm -1.8940mm 0.9080mm]
+	ElementLine [-3.4580mm -1.8940mm 22.5420mm -1.8940mm 0.9080mm]
+	ElementLine [22.5420mm -1.8940mm 22.5420mm -11.8940mm 0.9080mm]
+	ElementLine [22.5420mm -11.8940mm -3.4580mm -11.8940mm 0.9080mm]
+	ElementLine [0.7000mm -6.9000mm 5.6000mm -6.9000mm 0.6000mm]
+	ElementLine [18.3000mm -6.9000mm 12.9000mm -6.9000mm 0.6000mm]
+	ElementArc [7.5000mm -6.7000mm 1.8000mm 1.8000mm -0.000000 90.000000 0.6000mm]
+	ElementArc [7.5000mm -6.8000mm 1.9000mm 1.9000mm 90.000000 90.000000 0.6000mm]
+	ElementArc [11.2000mm -6.8000mm 1.8000mm 1.8000mm 270.000000 90.000000 0.6000mm]
+	ElementArc [11.2000mm -6.9000mm 1.7000mm 1.7000mm 180.000000 90.000000 0.6000mm]
+
+	)
