@@ -3,8 +3,6 @@
 
 #include <QDebug>
 
-#include "comando_serial.h" // TEST
-
 // Constantes
 const QString temp_path = "/tmp/";
 
