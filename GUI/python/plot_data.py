@@ -9,7 +9,7 @@ plt.plot(y.index, y.iloc[:,0], marker='.')
 plt.plot(y.index, y.iloc[:,1], marker='.')
 plt.plot(y.index, y.iloc[:,2], marker='.')
 plt.grid()
-#plt.ylim(0,4096)
+plt.ylim(0,4096)
 plt.show(block=False)
 
 plt.figure()
