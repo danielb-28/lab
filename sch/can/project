@@ -1,0 +1,3 @@
+schematics placa_transceptor.sch
+elements-dir ../../pcb-elements/
+output-name placa_transceptor

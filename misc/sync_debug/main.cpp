@@ -5,7 +5,7 @@
 
 // CONSTANTES
 #define N_PAR 3 // Numero de parametros monitorados
-#define PARAM_CNT 10 //  Numero de varreduras para cada aquisicao de parametros
+#define PARAM_CNT 255 // Numero de varreduras para cada aquisicao de parametros
 #define MAX_SMP 50 // Numero maximo de amostras
 
 // CONSTANTES SPI
@@ -76,13 +76,13 @@ volatile uint8_t read_cnt = 0; // Contagem para a leitura de parametros
 uint32_t param[N_PAR]; // Vetor de parametros
 bool adc_param_pendente = false; // Controle do envio dos parametros
 uint16_t smp_enviadas; // Quantidade de amostras que serao enviadas
-bool env_sync = false;
 
 // VARIAVEIS CAN
 CAN can(CRX, CTX, CAN_FREQ);
 CANMessage can_buffer_rx;
 CANMessage can_buffer_tx;
 char can_data_buffer_tx[CAN_MSG_TAMANHO_TX];
+bool cont = false; // TEST 
 char can_smp_buffer[2*MAX_SMP]; // TEST
 
 // FUNCOES
@@ -150,7 +150,7 @@ int main() {
     smp_enviadas = smp / ((uint16_t) ((serial_fixed[0] >> 4) & 0x0F) + 1); // Define a quantidade de amostras que serao enviadas
     
     // Inicia o DAC
-    LPC_DAC->DACCTRL |= (3UL << 2); // Set DMA_ENA e CNT_ENA
+    //LPC_DAC->DACCTRL |= (3UL << 2); // Set DMA_ENA e CNT_ENA
     
     // Inicia o ADC
     LPC_ADC->ADCR |= (1UL << 16); // Ativa o ADC no modo burst
@@ -167,9 +167,9 @@ int main() {
                 //pc.puts("\n\rDMA COMPLETO\n\r"); // DEBUG
                 
                 // Envio do Label
-                label = (smp_enviadas << 4); // Label 
+                label = (smp_enviadas << 4);
                 
-                if(adc_param_pendente) label |= 0x01; // Label parametros     
+                //if(adc_param_pendente) label |= 0x01; // TEST     
                 
                 //pc.putc((label >> 8) & 0xFF); // Envio Serial
                 //pc.putc(label & 0xFF); // Envio Serial  
@@ -179,10 +179,12 @@ int main() {
                 
                 can_buffer_tx = CANMessage(2, can_data_buffer_tx, CAN_MSG_TAMANHO_TX); // TEST
                 
+                //cont = false;
+                
                 can.write(can_buffer_tx); // Envio CAN
                 
                 // Envio dos Parametros
-                
+                /*
                 if(adc_param_pendente){
                     
                     led1 = !led1; // LED - Amostragem Sinal
@@ -195,9 +197,9 @@ int main() {
                         can_data_buffer_tx[0] = (char) ((param[i] >> 12) & 0xF); // Envio CAN
                         can_data_buffer_tx[1] = (char) ((param[i] >> 4) & 0xFF); // Envio CAN
                         
-                        wait_us(100);
-                        
                         can_buffer_tx = CANMessage(2, can_data_buffer_tx, CAN_MSG_TAMANHO_TX); // TEST
+                        
+                        cont = false;
                         
                         can.write(can_buffer_tx); // Envio CAN
                         
@@ -205,7 +207,7 @@ int main() {
                      
                     adc_param_pendente = false;
                     
-                }
+                }*/
                 
                 // Envio dos Dados
                 for (int i = 0; i < smp; i+=smp/smp_enviadas) {
@@ -228,22 +230,24 @@ int main() {
                     }
                     */
                     
-                    if(!env_sync){
-                        can_data_buffer_tx[0] = ((v[i] >> 12) & 0xF); // Envio CAN
-                        can_data_buffer_tx[1] = ((v[i] >> 4) & 0xFF); // Envio CAN    
-                    }
                     
-                    else{
-                        can_data_buffer_tx[0] = cont_global; // Envio CAN
-                        can_data_buffer_tx[1] = (char) cont_global; // Envio CAN
-                    }
+                    can_data_buffer_tx[0] = cont_global; // Envio CAN
+                    can_data_buffer_tx[1] = (char) cont_global; // Envio CAN
                     
+                    //pc.printf("\n\r%d   %d", cont_global, i); // DEBUG
                     if(smp <= 500) wait_us(50000/smp);
                     else wait_us(100);
                     can_buffer_tx = CANMessage(2, can_data_buffer_tx, CAN_MSG_TAMANHO_TX); // TEST
                     
-                    can.write(can_buffer_tx); // Envio CAN
+                    //cont = false;
                     
+                    can.write(can_buffer_tx); // Envio CAN
+                    /*
+                    while(1) {
+                        if(cont == true) break;
+                        wait_us(1);
+                    }
+                    */
                     /*
                     can_smp_buffer[j] = (char) ((v[i] >> 12) & 0xF);
                     can_smp_buffer[j+1] = (char) ((v[i] >> 4) & 0xFF);
@@ -260,6 +264,7 @@ int main() {
                 */
                 adc_completo = true;
                 cont_global++;
+                adc_reset();
             }
         }
 }
@@ -587,7 +592,7 @@ void adc_reset(void){
     LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
     adc_completo = false;
 
-    if(read_cnt<PARAM_CNT) { // TEST - Desabilita parametros
+    if(true) { // TEST - Desabilita parametros
         read_cnt++;
         LPC_ADC->ADCR  = (1UL << 21) | ((serial_fixed[1] >> 5) << 8) | (1UL << 0); // Enable, Clock, Canal 0
         dma.Prepare(conf_adc);
@@ -632,7 +637,11 @@ void canrx_callback(void){
         case 0x05:
             lock2 = (bool) (((uint8_t) serial_str[1])&0x01);
             break;
-        
+            
+        case 0x06:
+            cont = true;
+            break;
+
     }
 
     

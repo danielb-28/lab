@@ -1,0 +1,6 @@
+TXD	CONN1-4 U1-1 
+RXD	CONN1-3 U1-4 
+GND	CONN1-2 U1-2 C2-2 C1-2 
+Vcc	CONN1-1 U1-3 C2-1 C1-1 
+unnamed_net2	J1-1 U1-7 R1-1 
+unnamed_net1	J2-1 U1-6 R1-2 

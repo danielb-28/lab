@@ -270,6 +270,8 @@ void MainWindow::serial_config()
 
     x_max = ui->comboBox_amostras->currentText().toInt(); // Get tamanho do eixo horizontal - Desatualizado
 
+    n_comandos.push_back(Comando_serial(0x01)); // TEST
+
     // Criacao do comando serial - MOD
     comando = 0x01;
     comando |= (uint16_t) subsmp << 4;
@@ -309,12 +311,15 @@ void MainWindow::serial_start(){
     if(pex){
 
         boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
-        boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
+        //boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
     }
+
 
     boost::asio::read(mcu, boost::asio::dynamic_buffer(s_label, 2)); // Label do pacote de dados
 
     i_label = (uint16_t)((s_label[0] << 8) + (s_label[1] & 0x00FF));
+
+    qInfo() << "Label Recebido: " << i_label ; // DEBUG
 
     s_label.clear(); // Necessario - PQ
 
@@ -328,8 +333,11 @@ void MainWindow::serial_start(){
 
     x_max = (i_label >> 4); // Numero de amostras que serao recebidas
 
+    qInfo() << "Numero Amostras: " << x_max ; // DEBUG
+
     boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max)); // Recebimento das amostras
 
+    qInfo() << "Leitura Amostras - OK " << x_max ; // DEBUG
 
      // Potenciometros
      comando_t[0] = 0x02; // Label pot1
@@ -337,14 +345,14 @@ void MainWindow::serial_start(){
      comando_pot = comando_t[0] | (uint16_t) comando_t[1] << 8; // Comando pot1
 
      boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot1
-     boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot1
+     //boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot1
 
      comando_t[2] = 0x03; // label pot2
 
      comando_pot = comando_t[2] | (uint16_t) comando_t[3] << 8; // Comando pot2
 
      boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot2
-     boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot2
+     //boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot2
 
 
      // Locks
@@ -357,10 +365,10 @@ void MainWindow::serial_start(){
      lock2 |= (uint16_t) (this->ui->checkBox_lock2->isChecked() << 8); // Valor lock2
 
      boost::asio::write(mcu, boost::asio::buffer(&lock1, 2)); // Envio lock1
-     boost::asio::write(mcu, boost::asio::buffer(&lock1, 2)); // Envio lock1
+     //boost::asio::write(mcu, boost::asio::buffer(&lock1, 2)); // Envio lock1
 
      boost::asio::write(mcu, boost::asio::buffer(&lock2, 2)); // Envio lock2
-     boost::asio::write(mcu, boost::asio::buffer(&lock2, 2)); // Envio lock2
+     //boost::asio::write(mcu, boost::asio::buffer(&lock2, 2)); // Envio lock2
      //
 
      convert_dados(dados); // Conversao dos dados
@@ -406,7 +414,14 @@ void MainWindow::convert_dados(std::string dados)
 
     for(int index=0; index<2*x_max; index+=2)
     {
+
+        qInfo() << "Dado Recebido:" << index; // DEBUG
+        qInfo() << (uint8_t) dados[index]; // DEBUG
+        qInfo() << (uint8_t) dados[index+1]; // DEBUG
+
         dado_conv = (uint16_t)((dados[index] << 8) + (dados[index+1] & 0x00FF));
+
+        qInfo() << (uint16_t) dado_conv; // DEBUG
 
         // Filtro
         if(index>0)
@@ -443,7 +458,7 @@ void MainWindow::plot(){
 
     // Valores para os eixos
     int y_min = 0;
-    int y_max = 4096;
+    int y_max = 4095 + 100;
     int x_min = 1;
     int graf_sel = this->ui->comboBox_graf_sel->currentIndex(); // TEST
 

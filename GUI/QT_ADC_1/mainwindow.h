@@ -14,6 +14,9 @@
 
 #include <termios.h>
 
+#include "comando_serial.h"
+#include<vector>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -37,6 +40,8 @@ private:
     QVector<double> y_data_param1; // TEST
     QVector<double> y_data_param2; // TEST
     QVector<double> y_data_param3; // TEST
+
+    std::vector<Comando_serial> n_comandos;
 
     void serial_open(); // Abrir a porta e configurar a baud rate
     void serial_config(); // Criar o comando serial
