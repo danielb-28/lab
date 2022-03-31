@@ -17,5 +17,12 @@ ADC
 
 DAC
 	- DAC_OUT 	- p18
-	
+
+CAN
+	- TX	- p29
+	- RX	- p30
+
+LOCK
+	- LOCK_1	-
+	- LOCK_2	-
 ==========
