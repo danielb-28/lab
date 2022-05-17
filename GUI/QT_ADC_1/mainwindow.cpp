@@ -340,9 +340,10 @@ void MainWindow::serial_start(){
 
     if(x_max != x_max_set){
         qInfo() << "Numero de amostras diferente do esperado: " << x_max_set;
+        x_max = x_max_set;
     }
 
-    boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max_set)); // Recebimento das amostras
+    boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max)); // Recebimento das amostras
 
     qInfo() << "Leitura Amostras - OK " << x_max ; // DEBUG
 
