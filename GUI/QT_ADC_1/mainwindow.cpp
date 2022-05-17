@@ -32,6 +32,8 @@ int x_max = 0; // Valor maximo de amostras
 
 bool inverter = false; // Inverter plot // MOD - N PRECISA SER GLOBAL
 
+int x_max_set = 0; // DEBUG
+
 // Buffers circulares para os parametros
 boost::circular_buffer<double> param1_buffer(50);
 boost::circular_buffer<double> param2_buffer(50);
@@ -279,6 +281,7 @@ void MainWindow::serial_config()
     comando |= (uint16_t) dac_sinal << 11;
     comando |= (uint16_t) clock << 13;
 
+    x_max_set = amostras; // DEBUG
 
     if(DEBUG_FLAG==1||DEBUG_FLAG==2||DEBUG_FLAG==3) qInfo() << "Comando serial criado: " << (uint16_t) comando; // DEBUG 1 2 3
 }
@@ -311,7 +314,7 @@ void MainWindow::serial_start(){
     if(pex){
 
         boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
-        //boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
+        boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
     }
 
 
@@ -335,6 +338,10 @@ void MainWindow::serial_start(){
 
     qInfo() << "Numero Amostras: " << x_max ; // DEBUG
 
+    if(x_max != x_max_set){
+        qInfo() << "Numero de amostras diferente do esperado";
+    }
+
     boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max)); // Recebimento das amostras
 
     qInfo() << "Leitura Amostras - OK " << x_max ; // DEBUG
@@ -345,14 +352,14 @@ void MainWindow::serial_start(){
      comando_pot = comando_t[0] | (uint16_t) comando_t[1] << 8; // Comando pot1
 
      boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot1
-     //boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot1
+     boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot1
 
      comando_t[2] = 0x03; // label pot2
 
      comando_pot = comando_t[2] | (uint16_t) comando_t[3] << 8; // Comando pot2
 
      boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot2
-     //boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot2
+     boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot2
 
 
      // Locks
@@ -365,10 +372,10 @@ void MainWindow::serial_start(){
      lock2 |= (uint16_t) (this->ui->checkBox_lock2->isChecked() << 8); // Valor lock2
 
      boost::asio::write(mcu, boost::asio::buffer(&lock1, 2)); // Envio lock1
-     //boost::asio::write(mcu, boost::asio::buffer(&lock1, 2)); // Envio lock1
+     boost::asio::write(mcu, boost::asio::buffer(&lock1, 2)); // Envio lock1
 
      boost::asio::write(mcu, boost::asio::buffer(&lock2, 2)); // Envio lock2
-     //boost::asio::write(mcu, boost::asio::buffer(&lock2, 2)); // Envio lock2
+     boost::asio::write(mcu, boost::asio::buffer(&lock2, 2)); // Envio lock2
      //
 
      convert_dados(dados); // Conversao dos dados
