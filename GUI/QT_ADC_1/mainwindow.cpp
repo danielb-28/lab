@@ -281,7 +281,7 @@ void MainWindow::serial_config()
     comando |= (uint16_t) dac_sinal << 11;
     comando |= (uint16_t) clock << 13;
 
-    x_max_set = amostras; // DEBUG
+    x_max_set = x_max; // DEBUG
 
     if(DEBUG_FLAG==1||DEBUG_FLAG==2||DEBUG_FLAG==3) qInfo() << "Comando serial criado: " << (uint16_t) comando; // DEBUG 1 2 3
 }
@@ -336,13 +336,13 @@ void MainWindow::serial_start(){
 
     x_max = (i_label >> 4); // Numero de amostras que serao recebidas
 
-    qInfo() << "Numero Amostras: " << x_max ; // DEBUG
+    qInfo() << "Numero Amostras Label: " << x_max ; // DEBUG
 
     if(x_max != x_max_set){
-        qInfo() << "Numero de amostras diferente do esperado";
+        qInfo() << "Numero de amostras diferente do esperado: " << x_max_set;
     }
 
-    boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max)); // Recebimento das amostras
+    boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max_set)); // Recebimento das amostras
 
     qInfo() << "Leitura Amostras - OK " << x_max ; // DEBUG
 
@@ -422,13 +422,13 @@ void MainWindow::convert_dados(std::string dados)
     for(int index=0; index<2*x_max; index+=2)
     {
 
-        qInfo() << "Dado Recebido:" << index; // DEBUG
-        qInfo() << (uint8_t) dados[index]; // DEBUG
-        qInfo() << (uint8_t) dados[index+1]; // DEBUG
+        //qInfo() << "Dado Recebido:" << index; // DEBUG
+        //qInfo() << (uint8_t) dados[index]; // DEBUG
+        //qInfo() << (uint8_t) dados[index+1]; // DEBUG
 
         dado_conv = (uint16_t)((dados[index] << 8) + (dados[index+1] & 0x00FF));
 
-        qInfo() << (uint16_t) dado_conv; // DEBUG
+        //qInfo() << (uint16_t) dado_conv; // DEBUG
 
         // Filtro
         if(index>0)
