@@ -33,6 +33,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 CONFIG += static
 
+DEFINES += QCUSTOMPLOT_USE_OPENGL
+
 #INCLUDEPATH += "./boost_1_75_0"
 
 #DEPENDPATH += "./boost_1_75_0"

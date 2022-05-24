@@ -50,6 +50,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     this->setCentralWidget(ui->horizontalFrame); // Set widget central
 
+    // OpenGL qcustomplot
+    ui->plot_widget->setOpenGl(true);
+
     // Graficos
     ui->plot_widget->addGraph(); // Sinal/parametro1
     ui->plot_widget->addGraph(); // Parametro2
@@ -313,12 +316,14 @@ void MainWindow::serial_start(){
     comando_t[3] = (uint8_t) ui->doubleSpinBox_set2->value(); // Valor 8 bits
 
     // Aquisicao
-    if(pex){
+    /*if(pex){
 
         boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
         boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
-    }
+    }*/
 
+    boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
+    boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
 
     boost::asio::read(mcu, boost::asio::dynamic_buffer(s_label, 2)); // Label do pacote de dados
 
