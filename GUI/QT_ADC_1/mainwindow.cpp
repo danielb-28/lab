@@ -345,10 +345,12 @@ void MainWindow::serial_start(){
 
     qInfo() << "Numero Amostras Label: " << x_max ; // DEBUG
 
+    /*
     if(x_max != x_max_set){
         qInfo() << "Numero de amostras diferente do esperado: " << x_max_set;
         x_max = x_max_set;
     }
+    */
 
     boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max)); // Recebimento das amostras
 
@@ -568,8 +570,8 @@ void MainWindow::plot(){
     //
 
     // Configuracoes graficas
-    ui->plot_widget->graph(0)->setAntialiased(true);
-    ui->plot_widget->graph(0)->setAdaptiveSampling(true);
+    ui->plot_widget->graph(0)->setAntialiased(false);
+    ui->plot_widget->graph(0)->setAdaptiveSampling(false);
 
     // Rotina de atualizacao do plot
     ui->plot_widget->replot();
