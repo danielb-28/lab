@@ -329,7 +329,7 @@ void MainWindow::serial_start(){
 
     i_label = (uint16_t)((s_label[0] << 8) + (s_label[1] & 0x00FF));
 
-    qInfo() << "Label Recebido: " << i_label ; // DEBUG
+    //qInfo() << "Label Recebido: " << i_label ; // DEBUG
 
     s_label.clear(); // Necessario - PQ
 
@@ -343,7 +343,7 @@ void MainWindow::serial_start(){
 
     x_max = (i_label >> 4); // Numero de amostras que serao recebidas
 
-    qInfo() << "Numero Amostras Label: " << x_max ; // DEBUG
+    //qInfo() << "Numero Amostras Label: " << x_max ; // DEBUG
 
     /*
     if(x_max != x_max_set){
@@ -354,7 +354,7 @@ void MainWindow::serial_start(){
 
     boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max)); // Recebimento das amostras
 
-    qInfo() << "Leitura Amostras - OK " << x_max ; // DEBUG
+    //qInfo() << "Leitura Amostras - OK " << x_max ; // DEBUG
 
      // Potenciometros
      comando_t[0] = 0x02; // Label pot1
