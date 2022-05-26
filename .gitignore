@@ -1,5 +1,6 @@
 GUI/QT_ADC_1/boost/
 GUI/build-QT_ADC_1-Desktop-Profile/ 
+GUI/build-QT_ADC_1-Desktop-Release/ 
 GUI/*.o
 GUI/moc_*
 GUI/python/.vscode/
