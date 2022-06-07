@@ -7,7 +7,7 @@
 #include <net/if.h>
 #include <string.h>
 
-#define CAN_NAME "vcan1"
+#define CAN_NAME "can1"
 
 int main(int argc, char **argv){
 
@@ -43,8 +43,9 @@ int main(int argc, char **argv){
 	puts("Bind feito");
 
 	// Envio dos dados
-	data.can_id = 0x001;
-	sprintf(data.data, 0x001);
+	data.can_id = 0x002;
+	char str_dados[2] = {0x01, 0x00};
+	sprintf(data.data, "%s", str_dados);
 
 	if (write(fd, &data, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
 		perror("Erro no envio dos dados");
