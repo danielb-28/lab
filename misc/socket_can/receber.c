@@ -13,7 +13,7 @@
 int main(int argc, char **argv){
 
 	if(argc != 2){
-	       puts("Numero invalido de argumentos");
+	       puts("Numero invalido de argumentos\n\rFromato: numero_pacotes");
        		return 1;
  	}		
 
