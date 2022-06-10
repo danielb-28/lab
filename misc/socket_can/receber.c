@@ -12,6 +12,13 @@
 
 int main(int argc, char **argv){
 
+	int n_pacotes = atoi(argv[1]);
+
+	if(n_pacotes < 1){
+		perror("Numero invalido de pacotes");
+		return 1;
+	}
+
 	int fd; // file_desc
 	struct ifreq can_ifreq; // ifreq
 	struct can_frame dado; // data frame
@@ -47,18 +54,22 @@ int main(int argc, char **argv){
 
 	// Recebimento dos dados
 	puts("Aguardando dados...");
-	bytes_recebidos = read(fd, &dado, sizeof(struct can_frame));
- 	if (bytes_recebidos < 0) {
-		perror("Erro no recebimento");
-		return 1;
-	}
-
-	printf("0x%03X [%d] ", dado.can_id, dado.can_dlc);
-
-	for (int i = 0; i < dado.can_dlc; i++)
-		printf("%02X ", dado.data[i]);
+	int cnt = 0;
+	while(cnt < n_pacotes){
+		bytes_recebidos = read(fd, &dado, sizeof(struct can_frame));
+	 	if (bytes_recebidos < 0) {
+			perror("Erro no recebimento");
+			return 1;
+		}
 	
-	puts("\n\r");
+		printf("0x%03X [%d] ", dado.can_id, dado.can_dlc);
+	
+		for (int i = 0; i < dado.can_dlc; i++)
+			printf("%02X ", dado.data[i]);
+		
+		puts("\n\r");
+		cnt++;
+	}
 
 	// Fecha o socket
 	if (close(fd) < 0) {
