@@ -12,9 +12,14 @@
 
 int main(int argc, char **argv){
 
+	if(argc < 2){
+	       puts("Numero invalido de argumentos");
+       		return 1;
+ 	}		
+
 	int n_pacotes = atoi(argv[1]);
 
-	if(argc < 2 || n_pacotes < 1){
+	if(n_pacotes < 1){
 		puts("Numero invalido de pacotes");
 		return 1;
 	}
