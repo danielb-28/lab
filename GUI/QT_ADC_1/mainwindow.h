@@ -23,6 +23,7 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 #include <net/if.h>
+#include <unistd.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

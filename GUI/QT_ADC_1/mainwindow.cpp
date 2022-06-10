@@ -25,6 +25,7 @@ boost::asio::serial_port mcu(io); // Porta
 QTimer timer; // Timer para update
 
 uint16_t comando; // Comando serial // MOD
+char comando_can[2]; // MOD
 
 // Globais
 
@@ -287,10 +288,10 @@ int MainWindow::can_init()
 	// addr
 	memset(&can_addr, 0, sizeof(can_addr));
 	can_addr.can_family = AF_CAN;
-	can_addr.can_ifindex = can_ifreq.ifr_ifindex
+	can_addr.can_ifindex = can_ifreq.ifr_ifindex;
 	
 	// bind
-	if (bind(can_fd, (struct sockaddr_can *)&can_addr, sizeof(can_addr)) < 0) {
+	if (bind(can_fd, (struct sockaddr* )&can_addr, sizeof(can_addr)) < 0) {
 		qInfo() << "Erro no bind";
 		return 1;
 	}
@@ -304,12 +305,12 @@ int MainWindow::can_init()
 int MainWindow::can_end()
 {
 	// Fecha o socket
-	if (close(fd) < 0) {
+	if (close(can_fd) < 0) {
 		qInfo() << "Erro ao fechar o socket";
 		return 1;
 	}
 
-	qInfo("Socket CAN Fechado");
+	qInfo() << "Socket CAN Fechado";
 }
 // Rotina para criar o comando serial
 void MainWindow::serial_config()
@@ -334,9 +335,17 @@ void MainWindow::serial_config()
     comando |= (uint16_t) dac_sinal << 11;
     comando |= (uint16_t) clock << 13;
 
+    // Criacao do comando CAN - TEST
+    comando_can[0] = 0x01;
+    comando_can[0] |= (char) subsmp << 4;
+    comando_can[1] = (char) amostras;
+    comando_can[1] |= (char) dac_sinal << 3;
+    comando_can[1] |= (char) clock << 5;
+
     x_max_set = x_max; // DEBUG
 
     if(DEBUG_FLAG==1||DEBUG_FLAG==2||DEBUG_FLAG==3) qInfo() << "Comando serial criado: " << (uint16_t) comando; // DEBUG 1 2 3
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2||DEBUG_FLAG==3) qInfo() << "Comando can criado: " << comando_can; // DEBUG 1 2 3
 }
 
 // Envia o comando e recebe os dados
@@ -354,6 +363,12 @@ void MainWindow::serial_start(){
 
     uint16_t comando_pot; // Buffer potenciometros
 
+    struct can_frame frame; // data frame
+
+    frame.can_id = 0x001;
+    frame.can_dlc = 2;
+    sprintf(frame.data, "%s", comando_can);
+
     // Leitura set
     //comando_t[1] = (uint8_t) std::floor((ui->doubleSpinBox_set1->value()/100) * 255); // Valor percentual
     //comando_t[1] = (uint8_t) std::floor(((VREF - ui->doubleSpinBox_set1->value())/VREF) * 255); // Valor absoluto
@@ -370,8 +385,13 @@ void MainWindow::serial_start(){
         boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
     }*/
 
-    boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
-    boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
+    //boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
+    //boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
+    
+    if (write(fd, &dado, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
+    	qInfo() << "Erro no envio dos dados can";
+    }
+    qInfo() << "Dados can enviados";
 
     boost::asio::read(mcu, boost::asio::dynamic_buffer(s_label, 2)); // Label do pacote de dados
 
