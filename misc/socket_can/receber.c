@@ -46,6 +46,7 @@ int main(int argc, char **argv){
 	puts("Bind feito");
 
 	// Recebimento dos dados
+	puts("Aguardando dados...");
 	bytes_recebidos = read(fd, &dado, sizeof(struct can_frame));
  	if (bytes_recebidos < 0) {
 		perror("Erro no recebimento");
