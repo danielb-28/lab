@@ -15,7 +15,7 @@ int main(int argc, char **argv){
 	int n_pacotes = atoi(argv[1]);
 
 	if(n_pacotes < 1){
-		perror("Numero invalido de pacotes");
+		puts("Numero invalido de pacotes");
 		return 1;
 	}
 
