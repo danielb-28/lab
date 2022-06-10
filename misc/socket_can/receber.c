@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <linux/can.h>
@@ -33,7 +34,7 @@ int main(int argc, char **argv){
 	// addr
 	memset(&can_addr, 0, sizeof(can_addr));
 	can_addr.can_family = AF_CAN;
-	can_addr.can_ifindex = can_ifreq.ifr_ifindex
+	can_addr.can_ifindex = can_ifreq.ifr_ifindex;
 
 	// bind
 	if (bind(fd, (struct sockaddr *)&can_addr, sizeof(can_addr)) < 0) {

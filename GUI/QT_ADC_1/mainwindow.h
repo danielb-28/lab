@@ -54,8 +54,8 @@ private:
     struct sockaddr_can can_addr; // can address
     struct ifreq can_ifreq; // can ifreq
 
-    int can_init();
-    int can_end();
+    int can_init(); // Inicia o socket can
+    int can_end(); // Fecha o socket can
     void serial_open(); // Abrir a porta e configurar a baud rate
     void serial_config(); // Criar o comando serial
     void serial_start(); // Envia o comando e recebe os dados

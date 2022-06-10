@@ -296,6 +296,8 @@ int MainWindow::can_init()
 	}
 
 	qInfo() << "Bind Realizado";
+
+	return 0;
 }
 
 
