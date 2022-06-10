@@ -8,6 +8,8 @@ const QString temp_path = "/tmp/";
 
 #define BAUD 460800 // Baud rate
 
+#define CAN_NAME "can1"
+
 #define N_PAR 3 // Numero de parametros monitorados
 
 #define DEBUG_FLAG 1 // Ativa o DEBUG (1 - Mensagens de acoes e erros)
@@ -263,6 +265,50 @@ void MainWindow::serial_open()
 
 }
 
+
+int MainWindow::can_init()
+{
+
+	// file_desc
+	if ((can_fd = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) // Retorna o file_desc 
+	{
+		qInfo() << "Erro na criacao do socket";
+		return 1;
+	}
+
+	qInfo() << "Socket CAN Criado";
+	
+	// ifr_name
+	strcpy(can_ifreq.ifr_name, CAN_NAME);
+	
+	// indice da interface
+	ioctl(can_fd, SIOCGIFINDEX, &can_ifreq); // retorna o indice em can_ifreq.ifr_ifindex
+	
+	// addr
+	memset(&can_addr, 0, sizeof(can_addr));
+	can_addr.can_family = AF_CAN;
+	can_addr.can_ifindex = can_ifreq.ifr_ifindex
+	
+	// bind
+	if (bind(can_fd, (struct sockaddr_can *)&can_addr, sizeof(can_addr)) < 0) {
+		qInfo() << "Erro no bind";
+		return 1;
+	}
+
+	qInfo() << "Bind Realizado";
+}
+
+
+int MainWindow::can_end()
+{
+	// Fecha o socket
+	if (close(fd) < 0) {
+		qInfo() << "Erro ao fechar o socket";
+		return 1;
+	}
+
+	qInfo("Socket CAN Fechado");
+}
 // Rotina para criar o comando serial
 void MainWindow::serial_config()
 {

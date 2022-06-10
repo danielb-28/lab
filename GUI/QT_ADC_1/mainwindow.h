@@ -16,7 +16,13 @@
 
 #include "comando_serial.h"
 #include<vector>
+#include <string.h>
 
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <linux/can.h>
+#include <linux/can/raw.h>
+#include <net/if.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -43,6 +49,13 @@ private:
 
     std::vector<Comando_serial> n_comandos;
 
+    // CAN
+    int can_fd; // can file descriptor
+    struct sockaddr_can can_addr; // can address
+    struct ifreq can_ifreq; // can ifreq
+
+    int can_init();
+    int can_end();
     void serial_open(); // Abrir a porta e configurar a baud rate
     void serial_config(); // Criar o comando serial
     void serial_start(); // Envia o comando e recebe os dados

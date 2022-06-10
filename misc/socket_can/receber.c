@@ -42,17 +42,18 @@ int main(int argc, char **argv){
 	}
 	puts("Bind feito");
 
-	// Envio dos dados
-	data.can_id = 0x002;
-	char str_dados[2] = {0x01, 0x00};
-	sprintf(data.data, "%s", str_dados);
-
-	if (write(fd, &data, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
-		perror("Erro no envio dos dados");
+	// Recebimento dos dados
+	bytes_recebidos = read(fd, &dado, sizeof(struct can_frame));
+ 	if (nbytes < 0) {
+		perror("Erro no recebimento");
 		return 1;
 	}
-	puts("Dados enviados");
 
+	printf("0x%03X [%d] ", dado.can_id, dado.can_dlc);
+
+	for (int i = 0; i < dado.can_dlc; i++)
+		printf("%02X ", dado.data[i]);
+	
 	// Fecha o socket
 	if (close(fd) < 0) {
 		perror("Erro ao fechar o socket");
