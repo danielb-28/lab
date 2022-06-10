@@ -46,7 +46,7 @@ int main(int argc, char **argv){
 	// Envio dos dados
 	dado.can_id = 0x002;
 	dado.can_dlc = 2;
-	char str_dados[2] = {0x01, 0x00};
+	char str_dados[2] = {0x41, 0x42};
 	sprintf(dado.data, "%s", str_dados);
 
 	if (write(fd, &dado, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
