@@ -57,6 +57,8 @@ int main(int argc, char **argv){
 	for (int i = 0; i < dado.can_dlc; i++)
 		printf("%02X ", dado.data[i]);
 	
+	puts("\n\r");
+
 	// Fecha o socket
 	if (close(fd) < 0) {
 		perror("Erro ao fechar o socket");
