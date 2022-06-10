@@ -45,6 +45,7 @@ int main(int argc, char **argv){
 
 	// Envio dos dados
 	dado.can_id = 0x002;
+	dado.can_dlc = 2;
 	char str_dados[2] = {0x01, 0x00};
 	sprintf(dado.data, "%s", str_dados);
 
