@@ -61,7 +61,7 @@ int main(int argc, char **argv){
 	struct can_filter filtro[1];
 
 	filtro[0].can_id   = 0x002;
-	//filtro[0].can_mask = 0xFFF;
+	filtro[0].can_mask = 0xFFF;
 
 	setsockopt(fd, SOL_CAN_RAW, CAN_RAW_FILTER, &filtro, sizeof(filtro));
 
