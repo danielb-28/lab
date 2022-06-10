@@ -17,6 +17,8 @@ int main(int argc, char **argv){
 	struct can_frame dado; // data frame
 	struct sockaddr_can can_addr; // endereco
 
+	int bytes_recebidos;
+
 	// file_desc
 	if ((fd = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) // Retorna o file_desc 
 	{
@@ -45,7 +47,7 @@ int main(int argc, char **argv){
 
 	// Recebimento dos dados
 	bytes_recebidos = read(fd, &dado, sizeof(struct can_frame));
- 	if (nbytes < 0) {
+ 	if (bytes_recebidos < 0) {
 		perror("Erro no recebimento");
 		return 1;
 	}
