@@ -375,6 +375,13 @@ void MainWindow::serial_start(){
     frame.data[0] = comando_can[0];
     frame.data[1] = comando_can[1];
 
+    // Filtro can
+    struct can_filter filtro_can;
+    filtro_can.can_id   = 0x002;
+    filtro_can.can_mask = 0xFFFF;
+
+    setsockopt(can_fd, SOL_CAN_RAW, CAN_RAW_FILTER, &filtro_can, sizeof(filtro_can));
+
     // Leitura set
     //comando_t[1] = (uint8_t) std::floor((ui->doubleSpinBox_set1->value()/100) * 255); // Valor percentual
     //comando_t[1] = (uint8_t) std::floor(((VREF - ui->doubleSpinBox_set1->value())/VREF) * 255); // Valor absoluto
@@ -394,16 +401,25 @@ void MainWindow::serial_start(){
     //boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
     //boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
     
+    // Envio CAN
     if (write(can_fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
     	qInfo() << "Erro no envio dos dados can";
     }
     qInfo() << "Dados can enviados";
 
-    boost::asio::read(mcu, boost::asio::dynamic_buffer(s_label, 2)); // Label do pacote de dados
+    //boost::asio::read(mcu, boost::asio::dynamic_buffer(s_label, 2)); // Label do pacote de dados
+
+    // Recebimento CAN
+    int bytes_recebidos = ::read(can_fd, &frame, sizeof(struct can_frame));
+        if (bytes_recebidos < 0) {
+            qInfo() << "Erro no recebimento can";
+    }
+    s_label[0] = frame.data[0];
+    s_label[1] = frame.data[1];
 
     i_label = (uint16_t)((s_label[0] << 8) + (s_label[1] & 0x00FF));
 
-    //qInfo() << "Label Recebido: " << i_label ; // DEBUG
+    qInfo() << "Label Recebido: " << i_label ; // DEBUG
 
     s_label.clear(); // Necessario - PQ
 
