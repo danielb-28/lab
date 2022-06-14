@@ -135,7 +135,7 @@ void MainWindow::bt_inicio_click()
 
     pex=false; // Flag de primeira execucao
 
-    timer.start(); // Inicia o timer e a rotina de update
+    //timer.start(); // Inicia o timer e a rotina de update
 
 }
 
@@ -495,7 +495,7 @@ void MainWindow::serial_start(){
      //
      */
 
-        convert_dados(frame.data); // Conversao dos dados
+     convert_dados(frame.data); // Conversao dos dados
 
 }
 
