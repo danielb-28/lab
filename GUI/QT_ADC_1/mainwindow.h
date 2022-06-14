@@ -62,7 +62,7 @@ private:
     void serial_start(); // Envia o comando e recebe os dados
     void convert_dados(__u8* dados); // Conversao e processamento dos dados
     void plot(); // Plot
-    void update_parametros(std::string dados); // Atualizacao dos parametros
+    void update_parametros(__u8* dados); // Atualizacao dos parametros
     void write_parametros(); // TEST
     void write_dados(); // TEST
     void serial_close(); // Fechar a porta serial

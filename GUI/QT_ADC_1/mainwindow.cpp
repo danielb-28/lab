@@ -420,7 +420,7 @@ void MainWindow::serial_start(){
     qInfo() << "Label Recebido: " << i_label ; // DEBUG
 
     s_label.clear(); // Necessario - PQ
-    /*
+
     if(i_label & 0x01){ // Leitura parametros
 
         // Recebimento CAN - Parametros
@@ -430,14 +430,14 @@ void MainWindow::serial_start(){
                 qInfo() << "Erro no recebimento can - parametros";
         }
 
-        //sprintf(parametros, "%s", frame.data);
+        //sprintf(parametros, "%s", (std::string*) frame.data);
         //boost::asio::read(mcu, boost::asio::dynamic_buffer(parametros, 2*N_PAR));
 
         //update_parametros(parametros);
         update_parametros(frame.data);
 
     }
-    */
+
 
     x_max = (i_label >> 4); // Numero de amostras que serao recebidas
 
@@ -500,7 +500,7 @@ void MainWindow::serial_start(){
 }
 
 // Atualizacao dos parametros
-void MainWindow::update_parametros(std::string dados){
+void MainWindow::update_parametros(__u8 *dados){
 
     uint16_t dado_conv[N_PAR];
     double valor[N_PAR];
