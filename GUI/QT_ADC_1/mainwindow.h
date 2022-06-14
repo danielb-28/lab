@@ -60,7 +60,7 @@ private:
     void serial_open(); // Abrir a porta e configurar a baud rate
     void serial_config(); // Criar o comando serial
     void serial_start(); // Envia o comando e recebe os dados
-    void convert_dados(std::string dados); // Conversao e processamento dos dados
+    void convert_dados(__u8* dados); // Conversao e processamento dos dados
     void plot(); // Plot
     void update_parametros(std::string dados); // Atualizacao dos parametros
     void write_parametros(); // TEST

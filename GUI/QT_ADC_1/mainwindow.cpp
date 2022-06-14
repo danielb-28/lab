@@ -345,7 +345,7 @@ void MainWindow::serial_config()
     x_max_set = x_max; // DEBUG
 
     if(DEBUG_FLAG==1||DEBUG_FLAG==2||DEBUG_FLAG==3) qInfo() << "Comando serial criado: " << (uint16_t) comando; // DEBUG 1 2 3
-    if(DEBUG_FLAG==1||DEBUG_FLAG==2||DEBUG_FLAG==3) qInfo() << "Comando can criado: " << comando_can; // DEBUG 1 2 3
+    if(DEBUG_FLAG==1||DEBUG_FLAG==2||DEBUG_FLAG==3) qInfo() << "Comando can criado: " << (uint8_t) comando_can[0] << "  " << (uint8_t) comando_can[1]; // DEBUG 1 2 3
 }
 
 // Envia o comando e recebe os dados
@@ -376,6 +376,8 @@ void MainWindow::serial_start(){
     filtro_can.can_id   = 0x002;
     filtro_can.can_mask = 0xFFFF;
 
+    int bytes_recebidos = -1;
+
     setsockopt(can_fd, SOL_CAN_RAW, CAN_RAW_FILTER, &filtro_can, sizeof(filtro_can));
 
     // Leitura set
@@ -405,8 +407,8 @@ void MainWindow::serial_start(){
 
     //boost::asio::read(mcu, boost::asio::dynamic_buffer(s_label, 2)); // Label do pacote de dados
 
-    // Recebimento CAN
-    int bytes_recebidos = ::read(can_fd, &frame, sizeof(struct can_frame));
+    // Recebimento CAN - Label
+    bytes_recebidos = ::read(can_fd, &frame, sizeof(struct can_frame));
         if (bytes_recebidos < 0) {
             qInfo() << "Erro no recebimento can";
     }
@@ -418,14 +420,24 @@ void MainWindow::serial_start(){
     qInfo() << "Label Recebido: " << i_label ; // DEBUG
 
     s_label.clear(); // Necessario - PQ
-
+    /*
     if(i_label & 0x01){ // Leitura parametros
 
-        boost::asio::read(mcu, boost::asio::dynamic_buffer(parametros, 2*N_PAR));
+        // Recebimento CAN - Parametros
+        frame.can_dlc = 2*N_PAR;
+        int bytes_recebidos = ::read(can_fd, &frame, sizeof(struct can_frame));
+            if (bytes_recebidos < 0) {
+                qInfo() << "Erro no recebimento can - parametros";
+        }
 
-        update_parametros(parametros);
+        //sprintf(parametros, "%s", frame.data);
+        //boost::asio::read(mcu, boost::asio::dynamic_buffer(parametros, 2*N_PAR));
+
+        //update_parametros(parametros);
+        update_parametros(frame.data);
 
     }
+    */
 
     x_max = (i_label >> 4); // Numero de amostras que serao recebidas
 
@@ -438,11 +450,19 @@ void MainWindow::serial_start(){
     }
     */
 
-    boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max)); // Recebimento das amostras
+    //boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max)); // Recebimento das amostras
+
+    // Recebimento CAN - Dados
+    frame.can_dlc = 2*x_max;
+    bytes_recebidos = ::read(can_fd, &frame, sizeof(struct can_frame));
+        if (bytes_recebidos < 0) {
+            qInfo() << "Erro no recebimento can - dados";
+    }
 
     //qInfo() << "Leitura Amostras - OK " << x_max ; // DEBUG
 
      // Potenciometros
+     /*
      comando_t[0] = 0x02; // Label pot1
 
      comando_pot = comando_t[0] | (uint16_t) comando_t[1] << 8; // Comando pot1
@@ -473,8 +493,9 @@ void MainWindow::serial_start(){
      boost::asio::write(mcu, boost::asio::buffer(&lock2, 2)); // Envio lock2
      boost::asio::write(mcu, boost::asio::buffer(&lock2, 2)); // Envio lock2
      //
+     */
 
-     convert_dados(dados); // Conversao dos dados
+        convert_dados(frame.data); // Conversao dos dados
 
 }
 
@@ -502,7 +523,7 @@ void MainWindow::update_parametros(std::string dados){
 }
 
 // Conversao e processamento dos dados
-void MainWindow::convert_dados(std::string dados)
+void MainWindow::convert_dados(__u8 *dados)
 {
 
     uint16_t dado_conv;
