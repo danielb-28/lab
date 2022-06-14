@@ -28,7 +28,6 @@ uint16_t comando; // Comando serial // MOD
 char comando_can[2]; // MOD
 
 // Globais
-
 bool pex; // Flag de primeira execucao
 
 int x_max = 0; // Valor maximo de amostras
@@ -120,6 +119,7 @@ void MainWindow::bt_inicio_click()
     if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "---Abrindo Porta..."; // DEBUG 1 2
 
     this->serial_open(); // Abre porta serial
+    this->can_init();
 
     if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "---Configurando Serial..."; // DEBUG 1 2
 
@@ -305,7 +305,7 @@ int MainWindow::can_init()
 int MainWindow::can_end()
 {
 	// Fecha o socket
-	if (close(can_fd) < 0) {
+    if (::close(can_fd) < 0) {
 		qInfo() << "Erro ao fechar o socket";
 		return 1;
 	}
@@ -336,11 +336,15 @@ void MainWindow::serial_config()
     comando |= (uint16_t) clock << 13;
 
     // Criacao do comando CAN - TEST
+    /*
     comando_can[0] = 0x01;
     comando_can[0] |= (char) subsmp << 4;
     comando_can[1] = (char) amostras;
     comando_can[1] |= (char) dac_sinal << 3;
     comando_can[1] |= (char) clock << 5;
+    */
+    comando_can[0] = 0x01;
+    comando_can[1] = 0x00;
 
     x_max_set = x_max; // DEBUG
 
@@ -363,11 +367,13 @@ void MainWindow::serial_start(){
 
     uint16_t comando_pot; // Buffer potenciometros
 
+    // Dados can
     struct can_frame frame; // data frame
 
     frame.can_id = 0x001;
     frame.can_dlc = 2;
-    sprintf(frame.data, "%s", comando_can);
+    frame.data[0] = comando_can[0];
+    frame.data[1] = comando_can[1];
 
     // Leitura set
     //comando_t[1] = (uint8_t) std::floor((ui->doubleSpinBox_set1->value()/100) * 255); // Valor percentual
@@ -388,7 +394,7 @@ void MainWindow::serial_start(){
     //boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
     //boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
     
-    if (write(fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
+    if (write(can_fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
     	qInfo() << "Erro no envio dos dados can";
     }
     qInfo() << "Dados can enviados";
