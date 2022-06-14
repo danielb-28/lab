@@ -336,15 +336,11 @@ void MainWindow::serial_config()
     comando |= (uint16_t) clock << 13;
 
     // Criacao do comando CAN - TEST
-    /*
     comando_can[0] = 0x01;
     comando_can[0] |= (char) subsmp << 4;
     comando_can[1] = (char) amostras;
     comando_can[1] |= (char) dac_sinal << 3;
     comando_can[1] |= (char) clock << 5;
-    */
-    comando_can[0] = 0x01;
-    comando_can[1] = 0x00;
 
     x_max_set = x_max; // DEBUG
 
