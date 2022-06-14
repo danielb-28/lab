@@ -453,11 +453,20 @@ void MainWindow::serial_start(){
     //boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max)); // Recebimento das amostras
 
     // Recebimento CAN - Dados
-    frame.can_dlc = 2*x_max;
-    bytes_recebidos = ::read(can_fd, &frame, sizeof(struct can_frame));
-        if (bytes_recebidos < 0) {
-            qInfo() << "Erro no recebimento can - dados";
+    int cnt = 0;
+    int n_pacotes = 2*x_max;
+    while(cnt < n_pacotes){
+        bytes_recebidos = ::read(can_fd, &frame, sizeof(struct can_frame));
+            if (bytes_recebidos < 0) {
+                qInfo() << "Erro no recebimento can - dados";
+        }
+
+        for(int i = 0; i < frame.can_dlc; i++)
+            dados.append((uint8_t) frame.data[i]);
+
+        cnt++;
     }
+
 
     //qInfo() << "Leitura Amostras - OK " << x_max ; // DEBUG
 
@@ -495,12 +504,12 @@ void MainWindow::serial_start(){
      //
      */
 
-     convert_dados(frame.data); // Conversao dos dados
+     convert_dados(dados); // Conversao dos dados
 
 }
 
 // Atualizacao dos parametros
-void MainWindow::update_parametros(__u8 *dados){
+void MainWindow::update_parametros(std::string dados){
 
     uint16_t dado_conv[N_PAR];
     double valor[N_PAR];
