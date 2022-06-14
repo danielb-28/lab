@@ -23,10 +23,10 @@
 	- Envio do comando dos potenciometros (pot1 e pot2)
 	- Recebimento do comando de label
 		
-		- Apenas amostras:
+		- Parametros e amostras: 
 			- Recebimento dos parametros (3)
 			- Recebimento das amostras
 
-		- Parametros e amostras: 
+		- Apenas amostras:
  			- Recebimento das amostras
- 			
+

@@ -388,7 +388,7 @@ void MainWindow::serial_start(){
     //boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
     //boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
     
-    if (write(fd, &dado, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
+    if (write(fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
     	qInfo() << "Erro no envio dos dados can";
     }
     qInfo() << "Dados can enviados";
