@@ -3,6 +3,8 @@
 
 #include <QDebug>
 
+typedef uint8_t __u8; // TEST
+
 // Constantes
 const QString temp_path = "/tmp/";
 
@@ -357,6 +359,8 @@ void MainWindow::serial_start(){
 
     std::string dados; // Buffer de dados recebidos
 
+    std::vector<__u8> dados_u8;
+
     std::string parametros; // Buffer de parametros recebidos
 
     char comando_t[6]; // Comandos para potenciometros
@@ -434,7 +438,7 @@ void MainWindow::serial_start(){
         //boost::asio::read(mcu, boost::asio::dynamic_buffer(parametros, 2*N_PAR));
 
         //update_parametros(parametros);
-        update_parametros(frame.data);
+        //update_parametros(frame.data);
 
     }
 
@@ -461,9 +465,10 @@ void MainWindow::serial_start(){
                 qInfo() << "Erro no recebimento can - dados";
         }
 
-        for(int i = 0; i < frame.can_dlc; i++)
-            dados.append((uint8_t) frame.data[i]);
-
+        for(int i = 0; i < frame.can_dlc; i++){
+            dados_u8.push_back(frame.data[i]);
+            qInfo() << "frame - " << i << "   " << frame.data[i] << "   " << dados_u8.back();
+        }
         cnt++;
     }
 
@@ -532,7 +537,7 @@ void MainWindow::update_parametros(std::string dados){
 }
 
 // Conversao e processamento dos dados
-void MainWindow::convert_dados(__u8 *dados)
+void MainWindow::convert_dados(std::string dados)
 {
 
     uint16_t dado_conv;
