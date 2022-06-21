@@ -509,7 +509,7 @@ void MainWindow::serial_start(){
      //
      */
 
-     convert_dados(dados); // Conversao dos dados
+     convert_dados(dados_u8); // Conversao dos dados
 
 }
 
@@ -537,7 +537,7 @@ void MainWindow::update_parametros(std::string dados){
 }
 
 // Conversao e processamento dos dados
-void MainWindow::convert_dados(std::string dados)
+void MainWindow::convert_dados(std::vector<__u8> dados)
 {
 
     uint16_t dado_conv;
