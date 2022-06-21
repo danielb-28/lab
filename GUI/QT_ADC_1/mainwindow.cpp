@@ -137,7 +137,7 @@ void MainWindow::bt_inicio_click()
 
     pex=false; // Flag de primeira execucao
 
-    //timer.start(); // Inicia o timer e a rotina de update
+    timer.start(); // Inicia o timer e a rotina de update
 
 }
 
