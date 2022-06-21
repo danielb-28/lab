@@ -473,7 +473,7 @@ void MainWindow::serial_start(){
     }
 
 
-    //qInfo() << "Leitura Amostras - OK " << x_max ; // DEBUG
+     qInfo() << "Leitura Amostras can - OK " << cnt ; // DEBUG
 
      // Potenciometros
      /*
@@ -553,13 +553,13 @@ void MainWindow::convert_dados(std::vector<__u8> dados)
     for(int index=0; index<2*x_max; index+=2)
     {
 
-        //qInfo() << "Dado Recebido:" << index; // DEBUG
-        //qInfo() << (uint8_t) dados[index]; // DEBUG
-        //qInfo() << (uint8_t) dados[index+1]; // DEBUG
+        qInfo() << "Dado para conversao: " << index; // DEBUG
+        qInfo() << (uint8_t) dados[index]; // DEBUG
+        qInfo() << (uint8_t) dados[index+1]; // DEBUG
 
         dado_conv = (uint16_t)((dados[index] << 8) + (dados[index+1] & 0x00FF));
 
-        //qInfo() << (uint16_t) dado_conv; // DEBUG
+        qInfo() << "Dado convertido: " << (uint16_t) dado_conv; // DEBUG
 
         // Filtro
         if(index>0)
