@@ -102,7 +102,7 @@ void MainWindow::bt_inicio_click()
     connect(&timer, SIGNAL(timeout()), this, SLOT(plot_update()));
     //timer.setInterval(33.3); // 30 hz
     //timer.setInterval(10); // 100 hz
-    timer.setInterval(1); // 1 khz
+    timer.setInterval(1000); // 1 khz
 
     // Botoes - Enable/Disable
     ui->bt_inicio->setEnabled(false);
