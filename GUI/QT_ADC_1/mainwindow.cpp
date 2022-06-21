@@ -467,7 +467,7 @@ void MainWindow::serial_start(){
 
         for(int i = 0; i < frame.can_dlc; i++){
             dados_u8.push_back(frame.data[i]);
-            qInfo() << "frame - " << i << "   " << frame.data[i] << "   " << dados_u8.back();
+            qInfo() << "frame " << cnt <<  " - " << i << "   " << frame.data[i] << "   " << dados_u8.back();
         }
         cnt++;
     }
