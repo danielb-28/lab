@@ -102,7 +102,7 @@ void MainWindow::bt_inicio_click()
     connect(&timer, SIGNAL(timeout()), this, SLOT(plot_update()));
     //timer.setInterval(33.3); // 30 hz
     //timer.setInterval(10); // 100 hz
-    timer.setInterval(1000); // 1 khz
+    timer.setInterval(1000); // hz
 
     // Botoes - Enable/Disable
     ui->bt_inicio->setEnabled(false);
@@ -553,7 +553,7 @@ void MainWindow::convert_dados(std::vector<__u8> dados)
     for(int index=0; index<2*x_max; index+=2)
     {
 
-        qInfo() << "Dado para conversao: " << index; // DEBUG
+        qInfo() << "Indice dado para conversao: " << index; // DEBUG
         qInfo() << (uint8_t) dados[index]; // DEBUG
         qInfo() << (uint8_t) dados[index+1]; // DEBUG
 
