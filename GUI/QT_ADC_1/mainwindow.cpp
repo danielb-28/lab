@@ -462,7 +462,7 @@ void MainWindow::serial_start(){
     n_pacotes = 20; // TEST
     frame.can_dlc = 5; // TEST
 
-    while(cnt < n_pacotes/2){
+    while(cnt < n_pacotes){
         bytes_recebidos = ::read(can_fd, &frame, sizeof(struct can_frame));
             if (bytes_recebidos < 0) {
                 qInfo() << "Erro no recebimento can - dados";
