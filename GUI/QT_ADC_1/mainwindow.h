@@ -15,8 +15,9 @@
 #include <termios.h>
 
 #include "comando_serial.h"
-#include<vector>
+#include <vector>
 #include <string.h>
+#include <math.h>
 
 #include <sys/ioctl.h>
 #include <sys/socket.h>

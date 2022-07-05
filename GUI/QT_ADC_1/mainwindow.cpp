@@ -458,9 +458,10 @@ void MainWindow::serial_start(){
 
     // Recebimento CAN - Dados
     int cnt = 0;
-    int n_pacotes = 2*x_max; // remover 2
-    n_pacotes = 20; // TEST
     frame.can_dlc = 5; // TEST
+    int n_pacotes = math::ceil(2*x_max / frame.can_dlc); // remover 2
+    
+    qInfo() << "Aguardando " << n_pacotes << " CAN";
 
     while(cnt < n_pacotes){
         bytes_recebidos = ::read(can_fd, &frame, sizeof(struct can_frame));
