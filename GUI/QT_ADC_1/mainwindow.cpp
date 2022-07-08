@@ -459,7 +459,7 @@ void MainWindow::serial_start(){
     // Recebimento CAN - Dados
     int cnt = 0;
     frame.can_dlc = 5; // TEST
-    int n_pacotes = math::ceil(2*x_max / frame.can_dlc); // remover 2
+    int n_pacotes = ceil(2*x_max / frame.can_dlc);
     
     qInfo() << "Aguardando " << n_pacotes << " CAN";
 
@@ -557,13 +557,13 @@ void MainWindow::convert_dados(std::vector<__u8> dados)
     for(int index=0; index<2*x_max; index+=2)
     {
 
-        qInfo() << "Indice dado para conversao: " << index; // DEBUG
-        qInfo() << (uint8_t) dados[index]; // DEBUG
-        qInfo() << (uint8_t) dados[index+1]; // DEBUG
+        //qInfo() << "Indice dado para conversao: " << index; // DEBUG
+        //qInfo() << (uint8_t) dados[index]; // DEBUG
+        //qInfo() << (uint8_t) dados[index+1]; // DEBUG
 
         dado_conv = (uint16_t)((dados[index] << 8) + (dados[index+1] & 0x00FF));
 
-        qInfo() << "Dado convertido: " << (uint16_t) dado_conv; // DEBUG
+        //qInfo() << "Dado convertido: " << (uint16_t) dado_conv; // DEBUG
 
         // Filtro
         if(index>0)
