@@ -360,6 +360,7 @@ void MainWindow::serial_start(){
     std::string dados; // Buffer de dados recebidos
 
     std::vector<__u8> dados_u8;
+    std::vector<__u8> parametros_u8;
 
     std::string parametros; // Buffer de parametros recebidos
 
@@ -393,7 +394,7 @@ void MainWindow::serial_start(){
     //comando_t[3] = (uint8_t) std::floor(((VREF - ui->doubleSpinBox_set2->value())/VREF) * 255); // Valor absoluto
     comando_t[3] = (uint8_t) ui->doubleSpinBox_set2->value(); // Valor 8 bits
 
-    // Aquisicao
+    // Comando Aquisicao - Serial
     /*if(pex){
 
         boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
@@ -403,15 +404,17 @@ void MainWindow::serial_start(){
     //boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
     //boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
     
-    // Envio CAN
-    if (write(can_fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
+    // Comando Aquisicao - CAN
+
+    if (write(can_fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) { // Envio CAN
     	qInfo() << "Erro no envio dos dados can";
     }
     qInfo() << "Dados can enviados";
 
+    // Recebimento label - Serial
     //boost::asio::read(mcu, boost::asio::dynamic_buffer(s_label, 2)); // Label do pacote de dados
 
-    // Recebimento CAN - Label
+    // Recebimento label - CAN
     bytes_recebidos = ::read(can_fd, &frame, sizeof(struct can_frame));
         if (bytes_recebidos < 0) {
             qInfo() << "Erro no recebimento can";
@@ -457,11 +460,11 @@ void MainWindow::serial_start(){
     //boost::asio::read(mcu, boost::asio::dynamic_buffer(dados, 2*x_max)); // Recebimento das amostras
 
     // Recebimento CAN - Dados
-    int cnt = 0;
-    frame.can_dlc = 5; // TEST
-    int n_pacotes = ceil(2*x_max / frame.can_dlc);
+    int cnt = 0; // Contador de pacotes recebidos
+    frame.can_dlc = 5; // Tamanho pacote
+    int n_pacotes = ceil(2*x_max / frame.can_dlc); // Numero de pacotes que serao recebidos
     
-    qInfo() << "Aguardando " << n_pacotes << " CAN";
+    //qInfo() << "Aguardando " << n_pacotes << " CAN"; // DEBUG
 
     while(cnt < n_pacotes){
         bytes_recebidos = ::read(can_fd, &frame, sizeof(struct can_frame));
@@ -471,7 +474,7 @@ void MainWindow::serial_start(){
 
         for(int i = 0; i < frame.can_dlc; i++){
             dados_u8.push_back(frame.data[i]);
-            qInfo() << "frame " << cnt <<  " - " << i << "   " << frame.data[i] << "   " << dados_u8.back();
+            //qInfo() << "frame " << cnt <<  " - " << i << "   " << frame.data[i] << "   " << dados_u8.back(); // DEBUG
         }
         cnt++;
     }
@@ -479,24 +482,47 @@ void MainWindow::serial_start(){
 
      qInfo() << "Leitura Amostras can - OK " << cnt ; // DEBUG
 
-     // Potenciometros
-     /*
+     // Frame CAN para os Potenciometros e Locks
+     frame.can_id = 0x001; 
+     frame.can_dlc = 2;
+
+     // Buffer Potenciometro 1
      comando_t[0] = 0x02; // Label pot1
 
-     comando_pot = comando_t[0] | (uint16_t) comando_t[1] << 8; // Comando pot1
+     //comando_pot = comando_t[0] | (uint16_t) comando_t[1] << 8; // Comando pot1 - Serial
 
-     boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot1
-     boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot1
+     frame.data[0] = comando_t[0]; // Comando pot1 - CAN
+     frame.data[1] = comando_t[1]; // Comando pot1 - CAN
 
-     comando_t[2] = 0x03; // label pot2
+     // Envio Potenciometro 1 - Serial
+     //boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot1
+     //boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot1
 
-     comando_pot = comando_t[2] | (uint16_t) comando_t[3] << 8; // Comando pot2
+     // Envio Potenciometro 1 - CAN
+     if (write(can_fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) { // Envio CAN
+     	qInfo() << "Erro no envio dos dados can";
+     }
+     qInfo() << "Dados can enviados";
 
-     boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot2
-     boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot2
+     // Buffer Potenciometro 2
+     comando_t[2] = 0x03; // Label pot2
 
+     //comando_pot = comando_t[2] | (uint16_t) comando_t[3] << 8; // Comando pot2 - Serial
+
+     frame.data[0] = comando_t[2]; // Comando pot2 - CAN
+     frame.data[1] = comando_t[3]; // Comando pot2 - CAN
+
+     // Envio Potenciometro 2 - Serial
+     //boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot2
+     //boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot2
+
+     // Envio Potenciometro 2 - CAN
+     if (write(can_fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) { // Envio CAN
+     	qInfo() << "Erro no envio dos dados can";
+     }
 
      // Locks
+     /*
      uint16_t lock1, lock2;
 
      lock1 = 0x0004; // Label lock1
@@ -510,7 +536,6 @@ void MainWindow::serial_start(){
 
      boost::asio::write(mcu, boost::asio::buffer(&lock2, 2)); // Envio lock2
      boost::asio::write(mcu, boost::asio::buffer(&lock2, 2)); // Envio lock2
-     //
      */
 
      convert_dados(dados_u8); // Conversao dos dados
