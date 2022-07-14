@@ -8,3 +8,4 @@ gschem-sym/*
 gui_dep/*
 pcb-elements/*
 *.swp
+doc/todo.txt
