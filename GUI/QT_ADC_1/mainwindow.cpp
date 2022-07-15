@@ -101,8 +101,8 @@ void MainWindow::bt_inicio_click()
     // Timer update
     connect(&timer, SIGNAL(timeout()), this, SLOT(plot_update()));
     //timer.setInterval(33.3); // 30 hz
-    //timer.setInterval(10); // 100 hz
-    timer.setInterval(1000); // hz
+    timer.setInterval(10); // 100 hz
+    ///timer.setInterval(1000); // hz
 
     // Botoes - Enable/Disable
     ui->bt_inicio->setEnabled(false);
@@ -359,8 +359,8 @@ void MainWindow::serial_start(){
 
     std::string dados; // Buffer de dados recebidos
 
-    std::vector<__u8> dados_u8;
-    std::vector<__u8> parametros_u8;
+    std::vector<__u8> dados_u8; // Vetor de dados CAN
+    std::vector<__u8> parametros_u8; // Vetor de parametros CAN
 
     std::string parametros; // Buffer de parametros recebidos
 
@@ -405,7 +405,6 @@ void MainWindow::serial_start(){
     //boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
     
     // Comando Aquisicao - CAN
-
     if (write(can_fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) { // Envio CAN
     	qInfo() << "Erro no envio dos dados can";
     }
@@ -436,11 +435,15 @@ void MainWindow::serial_start(){
             if (bytes_recebidos < 0) {
                 qInfo() << "Erro no recebimento can - parametros";
         }
-
+        for(int i = 0; i < frame.can_dlc; i++){
+            parametros_u8.push_back(frame.data[i]);
+            //qInfo() << "frame " << cnt <<  " - " << i << "   " << frame.data[i] << "   " << dados_u8.back(); // DEBUG
+        }
+ 
         //sprintf(parametros, "%s", (std::string*) frame.data);
         //boost::asio::read(mcu, boost::asio::dynamic_buffer(parametros, 2*N_PAR));
 
-        //update_parametros(parametros);
+        update_parametros(parametros_u8);
         //update_parametros(frame.data);
 
     }
@@ -525,7 +528,7 @@ void MainWindow::serial_start(){
      //lock1 |= (uint16_t) (this->ui->checkBox_lock1->isChecked() << 8); // Valor lock1 - Serial
      
      frame.data[0] = 0x04; //Label lock1 - CAN
-     frame.data[1] = (this->ui->checkBox_lock1->isChecked() << 8); // Valor lock1 - CAN
+     frame.data[1] = this->ui->checkBox_lock1->isChecked(); // Valor lock1 - CAN
 
      //boost::asio::write(mcu, boost::asio::buffer(&lock1, 2)); // Envio lock1 - Serial
 
@@ -537,7 +540,7 @@ void MainWindow::serial_start(){
      //lock2 |= (uint16_t) (this->ui->checkBox_lock2->isChecked() << 8); // Valor lock2 - Serial
 
      frame.data[0] = 0x05; //Label lock1 - CAN
-     frame.data[1] = (this->ui->checkBox_lock2->isChecked() << 8); // Valor lock2 - CAN 
+     frame.data[1] = this->ui->checkBox_lock2->isChecked(); // Valor lock2 - CAN 
 
      //boost::asio::write(mcu, boost::asio::buffer(&lock2, 2)); // Envio lock2
 
@@ -551,7 +554,7 @@ void MainWindow::serial_start(){
 }
 
 // Atualizacao dos parametros
-void MainWindow::update_parametros(std::string dados){
+void MainWindow::update_parametros(std::vector<__u8> dados){
 
     uint16_t dado_conv[N_PAR];
     double valor[N_PAR];
