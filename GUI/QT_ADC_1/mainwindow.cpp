@@ -495,14 +495,12 @@ void MainWindow::serial_start(){
      frame.data[1] = comando_t[1]; // Comando pot1 - CAN
 
      // Envio Potenciometro 1 - Serial
-     //boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot1
-     //boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot1
+     //boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot1 - Serial
 
      // Envio Potenciometro 1 - CAN
-     if (write(can_fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) { // Envio CAN
-     	qInfo() << "Erro no envio dos dados can";
+     if (write(can_fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) { // Envio comando pot1 - CAN
+     	qInfo() << "Erro no envio dos dados can - pot1";
      }
-     qInfo() << "Dados can enviados";
 
      // Buffer Potenciometro 2
      comando_t[2] = 0x03; // Label pot2
@@ -513,31 +511,41 @@ void MainWindow::serial_start(){
      frame.data[1] = comando_t[3]; // Comando pot2 - CAN
 
      // Envio Potenciometro 2 - Serial
-     //boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot2
-     //boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot2
+     //boost::asio::write(mcu, boost::asio::buffer(&comando_pot, 2)); // Envio comando pot2 - Serial
 
      // Envio Potenciometro 2 - CAN
-     if (write(can_fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) { // Envio CAN
-     	qInfo() << "Erro no envio dos dados can";
+     if (write(can_fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) { // Envio comando pot2 - CAN
+     	qInfo() << "Erro no envio dos dados can - pot2";
      }
 
      // Locks
-     /*
      uint16_t lock1, lock2;
 
-     lock1 = 0x0004; // Label lock1
-     lock1 |= (uint16_t) (this->ui->checkBox_lock1->isChecked() << 8); // Valor lock1
+     //lock1 = 0x0004; // Label lock1 - Serial
+     //lock1 |= (uint16_t) (this->ui->checkBox_lock1->isChecked() << 8); // Valor lock1 - Serial
+     
+     frame.data[0] = 0x04; //Label lock1 - CAN
+     frame.data[1] = (this->ui->checkBox_lock1->isChecked() << 8); // Valor lock1 - CAN
 
-     lock2 = 0x0005; // Label lock2
-     lock2 |= (uint16_t) (this->ui->checkBox_lock2->isChecked() << 8); // Valor lock2
+     //boost::asio::write(mcu, boost::asio::buffer(&lock1, 2)); // Envio lock1 - Serial
 
-     boost::asio::write(mcu, boost::asio::buffer(&lock1, 2)); // Envio lock1
-     boost::asio::write(mcu, boost::asio::buffer(&lock1, 2)); // Envio lock1
+     if (write(can_fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) { // Envio lock1 - CAN
+     	qInfo() << "Erro no envio dos dados can - lock1";
+     }
 
-     boost::asio::write(mcu, boost::asio::buffer(&lock2, 2)); // Envio lock2
-     boost::asio::write(mcu, boost::asio::buffer(&lock2, 2)); // Envio lock2
-     */
+     //lock2 = 0x0005; // Label lock2 - Serial
+     //lock2 |= (uint16_t) (this->ui->checkBox_lock2->isChecked() << 8); // Valor lock2 - Serial
 
+     frame.data[0] = 0x05; //Label lock1 - CAN
+     frame.data[1] = (this->ui->checkBox_lock2->isChecked() << 8); // Valor lock2 - CAN 
+
+     //boost::asio::write(mcu, boost::asio::buffer(&lock2, 2)); // Envio lock2
+
+     if (write(can_fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) { // Envio lock2 - CAN
+     	qInfo() << "Erro no envio dos dados can - lock2";
+     }
+
+     // Processamento dos dados recebidos
      convert_dados(dados_u8); // Conversao dos dados
 
 }
