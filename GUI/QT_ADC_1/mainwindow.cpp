@@ -397,6 +397,8 @@ void MainWindow::serial_start(){
     // Comando Aquisicao - Serial
     boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
     boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
+
+    qInfo() << "Aquisicao serial enviada"; // DEBUG
     
     // Comando Aquisicao - CAN
     /*
