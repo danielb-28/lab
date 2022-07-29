@@ -395,20 +395,16 @@ void MainWindow::serial_start(){
     comando_t[3] = (uint8_t) ui->doubleSpinBox_set2->value(); // Valor 8 bits
 
     // Comando Aquisicao - Serial
-    /*if(pex){
-
-        boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
-        boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
-    }*/
-
-    //boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
-    //boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
+    boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
+    boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
     
     // Comando Aquisicao - CAN
+    /*
     if (write(can_fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) { // Envio CAN
     	qInfo() << "Erro no envio dos dados can";
     }
     qInfo() << "Dados can enviados";
+    */
 
     // Recebimento label - Serial
     //boost::asio::read(mcu, boost::asio::dynamic_buffer(s_label, 2)); // Label do pacote de dados
@@ -437,7 +433,7 @@ void MainWindow::serial_start(){
         }
         for(int i = 0; i < frame.can_dlc; i++){
             parametros_u8.push_back(frame.data[i]);
-            //qInfo() << "frame " << cnt <<  " - " << i << "   " << frame.data[i] << "   " << dados_u8.back(); // DEBUG
+            //qInfo() << "frame par " << cnt <<  " - " << i << "   " << frame.data[i] << "   " << parametros_u8.back(); // DEBUG
         }
  
         //sprintf(parametros, "%s", (std::string*) frame.data);
