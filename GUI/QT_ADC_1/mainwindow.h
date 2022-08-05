@@ -14,7 +14,6 @@
 
 #include <termios.h>
 
-#include "comando_serial.h"
 #include <vector>
 #include <string.h>
 #include <math.h>
@@ -48,8 +47,6 @@ private:
     QVector<double> y_data_param1; // TEST
     QVector<double> y_data_param2; // TEST
     QVector<double> y_data_param3; // TEST
-
-    std::vector<Comando_serial> n_comandos;
 
     // CAN
     int can_fd; // can file descriptor

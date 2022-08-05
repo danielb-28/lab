@@ -14,14 +14,10 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     qcustomplot.cpp \
-    comando_serial.cpp \
-    porta_serial.cpp
 
 HEADERS += \
     mainwindow.h \
     qcustomplot.h \
-    comando_serial.h \
-    porta_serial.h
 
 FORMS += \
     mainwindow.ui

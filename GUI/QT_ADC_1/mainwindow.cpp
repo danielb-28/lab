@@ -52,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    this->setCentralWidget(ui->horizontalFrame); // Set widget central
+    this->setCentralWidget(ui->centralwidget); // Set widget central
 
     // OpenGL qcustomplot
     ui->plot_widget->setOpenGl(true);
@@ -328,8 +328,6 @@ void MainWindow::serial_config()
 
     x_max = ui->comboBox_amostras->currentText().toInt(); // Get tamanho do eixo horizontal - Desatualizado
 
-    n_comandos.push_back(Comando_serial(0x01)); // TEST
-
     // Criacao do comando serial - MOD
     comando = 0x01;
     comando |= (uint16_t) subsmp << 4;
@@ -395,18 +393,18 @@ void MainWindow::serial_start(){
     comando_t[3] = (uint8_t) ui->doubleSpinBox_set2->value(); // Valor 8 bits
 
     // Comando Aquisicao - Serial
+    /*
     boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
     boost::asio::write(mcu, boost::asio::buffer(&comando, 2)); // Comando para aquisição
 
     qInfo() << "Aquisicao serial enviada"; // DEBUG
+    */
     
     // Comando Aquisicao - CAN
-    /*
     if (write(can_fd, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) { // Envio CAN
     	qInfo() << "Erro no envio dos dados can";
     }
-    qInfo() << "Dados can enviados";
-    */
+    qInfo() << "Aquisicao can enviada";
 
     // Recebimento label - Serial
     //boost::asio::read(mcu, boost::asio::dynamic_buffer(s_label, 2)); // Label do pacote de dados
@@ -424,6 +422,15 @@ void MainWindow::serial_start(){
     qInfo() << "Label Recebido: " << i_label ; // DEBUG
 
     s_label.clear(); // Necessario - PQ
+
+    x_max = (i_label >> 4); // Numero de amostras que serao recebidas
+
+    if (x_max != x_max_set){
+	    
+            qInfo() << "Label Invalido";
+
+	    return;
+    }
 
     if(i_label & 0x01){ // Leitura parametros
 
@@ -447,7 +454,6 @@ void MainWindow::serial_start(){
     }
 
 
-    x_max = (i_label >> 4); // Numero de amostras que serao recebidas
 
     //qInfo() << "Numero Amostras Label: " << x_max ; // DEBUG
 
@@ -743,8 +749,8 @@ void MainWindow::serial_close(){
 
     tcflush(mcu.native_handle(), 0); // Flush
 
-    tcsendbreak(mcu.native_handle(), 0); // Send break serial
-    if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "Microcontrolador resetado"; // DEBUG 1 2
+    //tcsendbreak(mcu.native_handle(), 0); // Send break serial
+    //if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "Microcontrolador resetado"; // DEBUG 1 2
 
     mcu.close(); // Fecha a porta serial
     if(DEBUG_FLAG==1||DEBUG_FLAG==2) qInfo() << "Porta serial fechada"; // DEBUG 1 2
