@@ -38,6 +38,8 @@ bool inverter = false; // Inverter plot // MOD - N PRECISA SER GLOBAL
 
 int x_max_set = 0; // DEBUG
 
+bool completo = true;
+
 // Buffers circulares para os parametros
 boost::circular_buffer<double> param1_buffer(50);
 boost::circular_buffer<double> param2_buffer(50);
@@ -144,6 +146,9 @@ void MainWindow::bt_inicio_click()
 // Rotina de update - executada a cada timeout
 void MainWindow::plot_update()
 {
+    
+    if(!completo) return;
+    completo = false;
 
     if(FPS) t1 = std::chrono::steady_clock::now(); // Inicio
 
@@ -157,6 +162,7 @@ void MainWindow::plot_update()
 
         ui->label_fps->setText(QString::number(1/total.count(), 'g', 2)); // Fps instantaneo
     }
+    completo = true;
 }
 
 // Rotina de parada
