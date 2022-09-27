@@ -5,8 +5,7 @@
 
 // CONSTANTES
 #define N_PAR 3 // Numero de parametros monitorados
-#define PARAM_CNT 10 //  Numero de varreduras para cada aquisicao de parametros
-#define MAX_SMP 50 // Numero maximo de amostras
+#define PARAM_CNT 5 // Numero de varreduras para cada aquisicao de parametros
 
 // CONSTANTES SPI
 #define SPI_MOSI p5
@@ -22,14 +21,6 @@
 
 // CONSTANTES SERIAL
 #define BAUD 460800
-
-// CONSTANTES CAN
-#define CTX p29
-#define CRX p30
-
-#define CAN_FREQ 1000000
-#define CAN_MSG_TAMANHO 2
-#define CAN_MSG_TAMANHO_TX 2
 
 // LOCKs
 DigitalOut lock1(p29);
@@ -64,7 +55,7 @@ MODDMA_Config *conf_adc, *conf_adc2, *conf_dac1, *conf_dac2; // Configuracoes
 bool dma_completo = false;
 
 // VARIAVEIS SERIAL
-Serial pc(USBTX, USBRX); // Porta serial
+MODSERIAL pc(USBTX, USBRX); // Porta serial
 uint8_t serial_fixed[2]; // Salva o comando inicial de controle serial
 uint16_t label = 0; // Label do pacote de dados
 char serial_str[5]; // Comando de controle serial
@@ -76,14 +67,6 @@ volatile uint8_t read_cnt = 0; // Contagem para a leitura de parametros
 uint32_t param[N_PAR]; // Vetor de parametros
 bool adc_param_pendente = false; // Controle do envio dos parametros
 uint16_t smp_enviadas; // Quantidade de amostras que serao enviadas
-bool env_sync = false;
-
-// VARIAVEIS CAN
-CAN can(CRX, CTX, CAN_FREQ);
-CANMessage can_buffer_rx;
-CANMessage can_buffer_tx;
-char can_data_buffer_tx[CAN_MSG_TAMANHO_TX];
-char can_smp_buffer[2*MAX_SMP]; // TEST
 
 // FUNCOES
 void dma_adc_callback(void); // Completo dma adc sinal
@@ -92,7 +75,7 @@ void dma_dac1_callback(void); // Completo dma dac 1
 void dma_dac2_callback(void); // Completo dma dac 2
 void dma_erro(void);
 
-void serialrx_callback(); // Serial recebido
+void serialrx_callback(MODSERIAL_IRQ_INFO *q); // Serial recebido
 
 void adc_setup(uint8_t); // Configuracao adc
 void dac_setup(uint8_t);  // Configuracao dac
@@ -103,24 +86,15 @@ void spi_pot(uint8_t id, uint8_t value); // Potenciometro spi
 
 void adc_reset(void); // Reconfigura o adc
 
-void canrx_callback(void); // Can recebido
-
-int cont_global = 0;
-
 int main() {
     
     // CONFIGURACAO SERIAL
     pc.baud(BAUD);
-    pc.attach(serialrx_callback, Serial::RxIrq);
-    //pc.rxBufferSetSize(4); // bytes
+    pc.attach(&serialrx_callback, MODSERIAL::RxIrq);
+    pc.rxBufferSetSize(4); // bytes
     
     // CONFIGURACAO SPI
     spi_setup(16, 0, 1000000); // bits, modo, freq // TEST
-    
-    // CONFIGURACAO CAN
-    can.attach(canrx_callback, CAN::RxIrq);
-    can_buffer_rx = CANMessage(1, serial_str, CAN_MSG_TAMANHO);
-    //can_buffer_tx = CANMessage(1, can_data_buffer_tx, CAN_MSG_TAMANHO_TX); // TEST
     
     // CONFIGURACAO LOCKS
     lock1 = false;
@@ -157,50 +131,31 @@ int main() {
         
     // Main loop
     while(1){
-        wait_us(1);
+            
             // Envio dos dados
             if (dma_completo) {
                 
                 dma_completo = false; // Limpa a flag de dma completo
                 serial_str[0] &= ~0x03; // Limpa o trigger serial
                 
-                //pc.puts("\n\rDMA COMPLETO\n\r"); // DEBUG
-                
                 // Envio do Label
-                label = (smp_enviadas << 4); // Label 
+                label = (smp_enviadas << 4);
                 
-                if(adc_param_pendente) label |= 0x01; // Label parametros     
+                if(adc_param_pendente) label |= 0x01;     
                 
-                //pc.putc((label >> 8) & 0xFF); // Envio Serial
-                //pc.putc(label & 0xFF); // Envio Serial  
-                
-                can_data_buffer_tx[0] = (char) ((label >> 8) & 0xFF); // Envio CAN
-                can_data_buffer_tx[1] = (char) (label & 0xFF); // Envio CAN
-                
-                can_buffer_tx = CANMessage(2, can_data_buffer_tx, CAN_MSG_TAMANHO_TX); // TEST
-                
-                can.write(can_buffer_tx); // Envio CAN
+                pc.putc((label >> 8) & 0xFF);
+                pc.putc(label & 0xFF);
                 
                 // Envio dos Parametros
-                
                 if(adc_param_pendente){
                     
                     led1 = !led1; // LED - Amostragem Sinal
                     
                     for (int i=0; i<N_PAR; i++) {
                 
-                        //pc.putc((param[i] >> 12) & 0xF); // Envio Serial
-                        //pc.putc((param[i] >> 4) & 0xFF); // Envio Serial
-                        
-                        can_data_buffer_tx[0] = (char) ((param[i] >> 12) & 0xF); // Envio CAN
-                        can_data_buffer_tx[1] = (char) ((param[i] >> 4) & 0xFF); // Envio CAN
-                        
-                        wait_us(100);
-                        
-                        can_buffer_tx = CANMessage(2, can_data_buffer_tx, CAN_MSG_TAMANHO_TX); // TEST
-                        
-                        can.write(can_buffer_tx); // Envio CAN
-                        
+                        pc.putc((param[i] >> 12) & 0xF);
+                        pc.putc((param[i] >> 4) & 0xFF);
+                                      
                     }
                      
                     adc_param_pendente = false;
@@ -209,57 +164,11 @@ int main() {
                 
                 // Envio dos Dados
                 for (int i = 0; i < smp; i+=smp/smp_enviadas) {
-                //int j = 0;
-                //for (int i = 0; i < 50; i++) {
-                    //pc.putc((v[i] >> 12) & 0xF); // Envio Serial
-                    //pc.putc((v[i] >> 4) & 0xFF); // Envio Serial
                     
-                    //can_data_buffer_tx[0] = ((v[i] >> 12) & 0xF); // Envio CAN
-                    //can_data_buffer_tx[1] = ((v[i] >> 4) & 0xFF); // Envio CAN
-                    /*
-                    if(i < 50/2){
-                        can_data_buffer_tx[0] = 0x07; // Envio CAN
-                        can_data_buffer_tx[1] = 0xD0; // Envio CAN
-                    }
-                    
-                    else{
-                        can_data_buffer_tx[0] = 0x07; // Envio CAN
-                        can_data_buffer_tx[1] = 0x00; // Envio CAN
-                    }
-                    */
-                    
-                    if(!env_sync){
-                        can_data_buffer_tx[0] = ((v[i] >> 12) & 0xF); // Envio CAN
-                        can_data_buffer_tx[1] = ((v[i] >> 4) & 0xFF); // Envio CAN    
-                    }
-                    
-                    else{
-                        can_data_buffer_tx[0] = cont_global; // Envio CAN
-                        can_data_buffer_tx[1] = (char) cont_global; // Envio CAN
-                    }
-                    
-                    if(smp <= 500) wait_us(50000/smp);
-                    else wait_us(100);
-                    can_buffer_tx = CANMessage(2, can_data_buffer_tx, CAN_MSG_TAMANHO_TX); // TEST
-                    
-                    can.write(can_buffer_tx); // Envio CAN
-                    
-                    /*
-                    can_smp_buffer[j] = (char) ((v[i] >> 12) & 0xF);
-                    can_smp_buffer[j+1] = (char) ((v[i] >> 4) & 0xFF);
-                    j += 2;
-                    */
+                    pc.putc((v[i] >> 12) & 0xF);
+                    pc.putc((v[i] >> 4) & 0xFF);
+                                      
                 }
-                /*
-                for(int i=0; i < smp; i+=8){
-                    
-                    can_buffer_tx = CANMessage(2, &can_smp_buffer[i], 8);
-                    can.write(can_buffer_tx);    
-                    
-                }
-                */
-                adc_completo = true;
-                cont_global++;
             }
         }
 }
@@ -533,10 +442,8 @@ void spi_pot(uint8_t id, uint8_t value){
 }
 
 // CALBACK SERIAL RX
-void serialrx_callback(){
-    
-    return; // TEST
-    /*
+void serialrx_callback(MODSERIAL_IRQ_INFO *q){
+
     if (pc.rxBufferFull()){ // Recebe o comando duplicado
         serial_str[0] = pc.getc();
         serial_str[1] = pc.getc();
@@ -556,6 +463,10 @@ void serialrx_callback(){
         }
         
         switch((((uint8_t)serial_str[0])&0x0F)){
+        
+            case 0x01:
+                adc_completo = true;
+                break;
         
             case 0x02:
                 spi_val[0] = (uint8_t) serial_str[1];
@@ -578,7 +489,7 @@ void serialrx_callback(){
         }
     }
     
-    return; */
+    return;
 } 
 
 void adc_reset(void){
@@ -587,7 +498,7 @@ void adc_reset(void){
     LPC_ADC->ADINTEN = 0x100; // Habilita a flag irq para o DMA
     adc_completo = false;
 
-    if(read_cnt<PARAM_CNT) { // TEST - Desabilita parametros
+    if(read_cnt<PARAM_CNT) {
         read_cnt++;
         LPC_ADC->ADCR  = (1UL << 21) | ((serial_fixed[1] >> 5) << 8) | (1UL << 0); // Enable, Clock, Canal 0
         dma.Prepare(conf_adc);
@@ -602,39 +513,4 @@ void adc_reset(void){
     LPC_ADC->ADCR |= (1UL << 16); // ATIVA O ADC
 
     return;    
-}
-
-void canrx_callback(void){
-    
-    can.read(can_buffer_rx);
-    
-    serial_str[0] = can_buffer_rx.data[0]; 
-    serial_str[1] = can_buffer_rx.data[1]; 
-    
-    //pc.printf("%d   %d\n\r", serial_str[0], serial_str[1]); // DEBUG
-    
-    switch((((uint8_t)serial_str[0])&0x0F)) {
-
-        case 0x02:
-            spi_val[0] = (uint8_t) serial_str[1];
-            spi_pot(0, spi_val[0]); // pot 1
-            break;
-
-        case 0x03:
-            spi_val[1] = (uint8_t) serial_str[1];
-            spi_pot(1, spi_val[1]); // pot 2
-            break;
-
-        case 0x04:
-            lock1 = (bool) (((uint8_t) serial_str[1])&0x01);
-            break;
-
-        case 0x05:
-            lock2 = (bool) (((uint8_t) serial_str[1])&0x01);
-            break;
-        
-    }
-
-    
-    return;
 }
